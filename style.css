@@ -17,7 +17,7 @@ a:hover, a h1:hover { color: #EB5160; }
     background-color: #fffaee; 
     padding:30px;
 }
-#navigator{text-align: center;}
+#head{text-align: center;}
 .navlink{
     font-size:large;
     background-color: #EB5160;
@@ -29,7 +29,7 @@ a:hover, a h1:hover { color: #EB5160; }
     padding:5px
 }
 .navlink:hover{background-color: #33A1FD;color: white;}
-#name{text-align: left; text-decoration:none;}
+#name{text-align: center; text-decoration:none; display:inherit}
 
 #face { float:left;width: 250px; border-radius: 25%; margin: 0px auto; position:relative; left: 15px;}
 #text{position:relative; left: 50px; margin-right:100px;}
