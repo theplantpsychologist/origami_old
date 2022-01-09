@@ -16,6 +16,7 @@ a:hover, a h1:hover { color: #EB5160; }
     max-width:800px; text-align:left; 
     background-color: #fffaee; 
     padding:30px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
 }
 #head{text-align: center;}
 .navlink{
@@ -24,11 +25,14 @@ a:hover, a h1:hover { color: #EB5160; }
     color: white; 
     font-family: "Century Gothic";
     border-radius: 10px;
+    border: 0px;
     text-decoration:none;
     display:inline-block;
     padding:5px
 }
+
 .navlink:hover{background-color: #33A1FD;color: white;}
+.marker{color: #2B303A; font-family: "Century Gothic";display:inline-block;font-size:large}
 #name{text-align: center; text-decoration:none; display:inherit}
 
 #face { float:left;width: 250px; border-radius: 25%; margin: 0px auto; position:relative; left: 15px;}
@@ -49,3 +53,9 @@ a:hover, a h1:hover { color: #EB5160; }
 .model-cp img,iframe{float:right; width: 60%}
 .model-cp p{margin-left:20px; position:relative; right:20px}
 .model-cp{overflow:auto}
+
+.lsection{display: grid; grid-template-columns: 2fr 1fr;column-gap:20px}
+.about-image-r{width:100%;position:relative;top:25px;}
+.rsection{display:grid; grid-template-columns: 1fr 2fr;column-gap:20px}
+.about-image-l{width:100%;position:relative;top:25px;}
+.subtitle{color: #2B303A; font-family: "Century Gothic";text-align: center;font-size:small;position:relative;top:30px;}
