@@ -40,7 +40,7 @@ a:hover, a h1:hover { color: #EB5160; }
 
 .model{text-align: center;}
 .thumb{border-radius: 10px; z-index:10; width:330px; border: 5px solid #33A1FD; opacity:100%}
-.caption{opacity:0%; text-align:center;color: #2B303A; position:relative; top:-150px; font-size:large; font-family: "Century Gothic"}
+.caption{opacity:0%; text-align:center;color: #2B303A; position:relative; top:-150px; font-size:x-large; font-family: "Century Gothic"}
 .model:hover .thumb{border: 5px solid #EB5160; z-index:1;opacity:50%; }
 .model:hover .caption{opacity:100%;}
 
@@ -59,3 +59,6 @@ a:hover, a h1:hover { color: #EB5160; }
 .rsection{display:grid; grid-template-columns: 1fr 2fr;column-gap:20px}
 .about-image-l{width:100%;position:relative;top:25px;}
 .subtitle{color: #2B303A; font-family: "Century Gothic";text-align: center;font-size:small;position:relative;top:30px;}
+
+.bottom-model{display:grid; grid-template-columns: 1fr 1fr 1fr; column-gap:10px;}
+.bottom-model img{width:100%}
