@@ -3,7 +3,7 @@ General
 color scheme: https://coolors.co/eb5160-33a1fd-fffaee-003049-2b303a
 */
 body { background-color: #003049; background-image: url("img/cp.svg");background-size:1000px;}
-p, h1, h2, ul {color: #2B303A; font-family: "Century Gothic";text-align: left;}
+p, h1, h2, ul {color: #2B303A; font-family: "Century Gothic","Avant Garde","Verdana";text-align: left;}
 a{color:#33A1FD}
 a:hover, a h1:hover { color: #EB5160; }
 
@@ -58,7 +58,7 @@ a:hover, a h1:hover { color: #EB5160; }
 .about-image-r{width:100%;position:relative;top:25px;}
 .rsection{display:grid; grid-template-columns: 1fr 2fr;column-gap:20px}
 .about-image-l{width:100%;position:relative;top:25px;}
-.subtitle{color: #2B303A; font-family: "Century Gothic";text-align: center;font-size:small;position:relative;top:30px;}
+.subtitle{color: #2B303A; font-family: "Century Gothic","Avant Garde","Verdana";text-align: center;font-size:small;position:relative;top:30px;}
 
 .bottom-model{display:grid; grid-template-columns: 1fr 1fr 1fr; column-gap:10px;}
 .bottom-model img{width:100%}
