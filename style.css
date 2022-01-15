@@ -23,7 +23,7 @@ a:hover, a h1:hover { color: #EB5160; }
     font-size:large;
     background-color: #EB5160;
     color: white; 
-    font-family: "Century Gothic";
+    font-family: "Century Gothic","Avant Garde","Verdana";
     border-radius: 10px;
     border: 0px;
     text-decoration:none;
@@ -32,7 +32,7 @@ a:hover, a h1:hover { color: #EB5160; }
 }
 
 .navlink:hover{background-color: #33A1FD;color: white;}
-.marker{color: #2B303A; font-family: "Century Gothic";display:inline-block;font-size:large}
+.marker{color: #2B303A; font-family: "Century Gothic","Avant Garde","Verdana";display:inline-block;font-size:large}
 #name{text-align: center; text-decoration:none; display:inherit}
 
 #face { float:left;width: 250px; border-radius: 25%; margin: 0px auto; position:relative; left: 15px;}
