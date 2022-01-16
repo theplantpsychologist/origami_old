@@ -2,7 +2,7 @@
 General
 color scheme: https://coolors.co/eb5160-33a1fd-fffaee-003049-2b303a
 */
-body { background-color: #003049; background-image: url("img/cp.svg");background-size:1000px;}
+body { background-color: #003049; background-image: url("img/cp.svg");background-size:800px;}
 p, h1, h2, ul {color: #2B303A; font-family: "Century Gothic","Avant Garde","Verdana";text-align: left;}
 a{color:#33A1FD}
 a:hover, a h1:hover { color: #EB5160; }
