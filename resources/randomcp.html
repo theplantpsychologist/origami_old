@@ -48,6 +48,7 @@
 
             - figure out how to sync up with origami simulator--to impress the non folders
             - connect to neural network somehow? neural net finds what seeds become nice cps
+            - in the seed: what's the best ratio between lateral and diagonal creases?
             */
             var grid = null
             var density = null
@@ -117,7 +118,7 @@
                     this.mv = 'red' //by default, change later
                 }
             }
-            
+            //generate() will reset everything, then run through steps 1 2 and 3, then display            
             function generate(){
                 console.log('===========new generation===========')
                 creases = []
@@ -136,7 +137,8 @@
                 step3()
                 display() //crease data is global
             }
-
+            
+            //step 1 is to create a seed of a few random creases from which the rest of the cp will be deterministically generated (except mv uses some random)
             function step1(){
                 /*
                 Generate a seed of random creases from which the rest of the cp will be drawn to accomodate.
@@ -213,6 +215,7 @@
                 }
             }
             
+            //step 2 is to fill in the rest of the creases based on the seed, to satisfy angle flat foldability
             function step2(){
                 /*
                 Fill in creases based on the ones generated in step 1.
@@ -421,17 +424,19 @@
                 step2a();
                 step2b();
             }
+            
+            //step 3 will find a way to assign mv to the cp
             function step3(){
                 /*
                 Start by giving each crease a random mv
                 Assign mv recursively
                 */
-                creases.forEach(crease => {
-                    crease.mv = Math.random()>0.66? 'blue': 'red'
-                })
-                mvErrors = findMvErrors(vertices)
+                creases.forEach(crease => {crease.mv = Math.random()>0.6? 'blue': 'red'}) //give each crease a random mv
+                mvErrors = findMvErrors(vertices) //find all vertices 
                 stop = 0
                 while(mvErrors.length>0 && stop<1000){
+                    //iterate through the list of mv error vertices
+                    //but after the first vertex is addressed, you have to recalculate the list anyways
                     console.log('ran step 3a')
                     step3a(mvErrors[0].connectedCreases[Math.floor(Math.random()*mvErrors[0].connectedCreases.length)],mvErrors[0]) //arbitrary starting crease
                     stop += 1
@@ -443,8 +448,8 @@
                 //The vertex has mv error if:
                 //It's not on the edge AND (it fails big angle lemma OR it fails small angle lemma OR it fails m-v=+-2 rule)
                 //In general, vertices on the edge can cause self intersection if they fail big little big lemma, but 
-                //that gets complicated because it requires counting the edge in the vectors, and doesn't matter for bp
-                mvErrors = []
+                //that gets complicated because it requires counting the edge in the vectors, and doesn't happen in bp. So for now, ignore
+                mvErrors = [];
                 loop: for(var i = 0; i< vertices.length; i++){
                     vertices[i].getCreasesAsVectors;
                     vertices[i].getAngles;
@@ -455,6 +460,7 @@
                     if( Math.abs(vertices[i].connectedCreases.filter(crease => crease.mv =='red').length-
                                 vertices[i].connectedCreases.filter(crease => crease.mv =='blue').length)!=2){
                         mvErrors.push(vertices[i])
+                        //if the vertex has not the right number of mv, it's gg. get in the list
                         continue loop
                     }
                     //To find big little big violations: look for 45 degree angles surrounded by two m or two v
@@ -464,11 +470,11 @@
                     //if there are 8 small angles, then the vertex is always ok locally (but will quite possibly cause self intersection somewhere)
                     //to simplify, we'll mark it invalid if more than half of the small angles violate.
 
-                    if(vertices[i].smallAngles.length!=0 && 
-                        vertices[i].smallAngles.filter(element => element[0].mv==element[1].mv).length/vertices[i].smallAngles.length > 0.5){
-                        mvErrors.push(vertices[i])
-                        continue loop
-                    }
+                    // if(vertices[i].smallAngles.length!=0 && 
+                    //     vertices[i].smallAngles.filter(element => element[0].mv==element[1].mv).length/vertices[i].smallAngles.length > 0.5){
+                    //     mvErrors.push(vertices[i])
+                    //     continue loop
+                    // }
                 }
                 return mvErrors
             }
@@ -479,44 +485,50 @@
                 //then, if there are too many m, then randomly choose m to convert to v. But not input crease
                 //but if there are too many v, randomly choose v to convert to m.
                 //After converting, apply step3a to the other affected vertices.
-                if( (Math.abs(vertex.connectedCreases.filter(crease => crease.mv =='red').length-
-                            vertex.connectedCreases.filter(crease => crease.mv =='blue').length)==2 &&
+                if( (Math.abs(vertex.connectedCreases.filter(crease_ => crease_.mv =='red').length-
+                            vertex.connectedCreases.filter(crease_ => crease_.mv =='blue').length)==2 && 
                             !vertex.smallAngles.filter(element => element[0].mv==element[1].mv).length/vertex.smallAngles.length > 0.5)||
                     [vertex.x,vertex.y].includes(0) ||
                     [vertex.x,vertex.y].includes(grid) ){
                     return
-                }
+                } //base case, see if the vertex is done
+                //there's an easier way to test for being on the edge
+//(vertex.x-0)*(vertex.y-0)*(vertex.x-grid)*(vertex.y-grid)==0
+
                 if(vertex.connectedCreases.length==2){
                     changedCrease = vertex.connectedCreases[vertex.connectedCreases[0]==crease? 1:0]
                     changedCrease.mv = (crease.mv == 'red'? 'red':'blue')
                     step3a(changedCrease, (changedCrease.vertices[0]==vertex? changedCrease.vertices[1] : changedCrease.vertices[0]))
-                }            
+                    return
+                } //if this vertex has 2 lines, one is m and one is v, switch the one that wasn't inputted and continue down the line           
 
-                
-                //The desired mv difference is 2 if input crease is m, -2 if input crease is v.
-                //The amount to change is desired - current divided by 2 (because changing v to m will increase v and decrease m)
+                //The desired mv difference is 2 if input crease is m, -2 if input crease is v. This minimizes the changes needed
+                //The number of creases to change is (desired - current)/2 because changing v to m will increase v and decrease m
                 //If the amount to change is positive, convert V to M.
                 //If the amount to change is negative, convert M to V.
                 //In either case, make sure the changed crease is not the input crease.
-                //After converting, recursively apply this function to the changed crease and it's vertex on the other side
+                //After converting, recursively apply this function (3a) to the changed crease and it's vertex on the other side
                 //If all goes well, it will keep going around until everybody satisfies the base case (has no mv error)
                 mvDifference = vertex.connectedCreases.filter(crease => crease.mv =='red').length- vertex.connectedCreases.filter(crease => crease.mv =='blue').length
                 change = (Math.abs(mvDifference)-2)/2 //how far away from 2 or -2 are you?
                 vertex.connectedCreases = shuffle(vertex.connectedCreases)
                 if (mvDifference == 0){
-                    //if the same number of m and v, the input crease breaks the tie.
+                    //if the same number of m and v, but more than 2 creases, the input crease breaks the tie.
                     change=1 //because it would be defined as -1 if mvDifference is 0
                     inputmv = crease.mv
-                    for(var i = 0; i<change; i++){
-                        if(vertex.connectedCreases.filter(crease => crease.mv !=inputmv)[i]==crease){
-                            change +=1; //skip this one, but it doesn't count as a change
-                            continue
-                        }
-                        changedCrease = vertex.connectedCreases.filter(crease => crease.mv !=inputmv)[i]
-                        //iterating through creases of the opposite mv
-                        try{changedCrease.mv = inputmv=='red'? 'red':'blue'} catch{console.log(vertex);return}
-                        step3a(changedCrease, (changedCrease.vertices[0]==vertex? changedCrease.vertices[1] : changedCrease.vertices[0]))
-                    }
+                    changedCrease = vertex.connectedCreases.filter(crease_ => crease_.mv != inputmv)[0] //change the first crease of the opposite mv
+                    changedCrease.mv = inputmv
+                    step3a(changedCrease, (changedCrease.vertices[0]==vertex? changedCrease.vertices[1] : changedCrease.vertices[0]))
+                    // for(var i = 0; i<change; i++){
+                    //     if(vertex.connectedCreases.filter(crease_ => crease_.mv !=inputmv)[i]==crease){
+                    //         change +=1; //skip this one, but it doesn't count as a change
+                    //         continue
+                    //     }
+                    //     changedCrease = vertex.connectedCreases.filter(crease_ => crease_.mv !=inputmv)[i]
+                    //     //iterating through creases of the opposite mv
+                    //     try{changedCrease.mv = inputmv=='red'? 'red':'blue'} catch{console.log(vertex, "failed crease change");return}
+                    //     step3a(changedCrease, (changedCrease.vertices[0]==vertex? changedCrease.vertices[1] : changedCrease.vertices[0]))
+                    // }
                 } else if (mvDifference<0){
                     //if mv difference is negative (-4 -), convert valleys to mountain
                     for(var i = 0; i<change; i++){
@@ -541,6 +553,8 @@
                     }
                 }
             }
+            
+            //display the generated cp
             function display(){
                 paper.project.clear();
                 //var bg = new paper.Path.Rectangle(0,0,400,400);
@@ -599,6 +613,7 @@
                 border.strokeWidth = 4;
             }
 
+            //save as .cp
             function download(){
                 //https://www.delftstack.com/howto/javascript/javascript-download/
                 var cpFile = ""
@@ -621,6 +636,7 @@
                 element.click();
             }
 
+            //auxilary functions
             function shuffle(array) {
                 //https://stackoverflow.com/questions/2450954/how-to-randomize-shuffle-a-javascript-array
                 let currentIndex = array.length,  randomIndex;
@@ -635,7 +651,6 @@
                 }
                 return array;
             }
-
             function sleep(milliseconds) {
                 //https://www.sitepoint.com/delay-sleep-pause-wait/
                 const date = Date.now();
