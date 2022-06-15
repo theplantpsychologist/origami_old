@@ -10,7 +10,7 @@
 <body>
     <div id='wrapper'>
         <div id='head'>
-            <a id = "name" href="index.html"><img src="../img/logo.svg" style="width: 50%;" alt="logo"></a>
+            <a id = "name" href="../index.html"><img src="../img/logo.svg" style="width: 50%;" alt="logo"></a>
             <hr>
             <div id='navigator'>
                 <a class="navlink" href="../index.html">Home</a>
@@ -135,7 +135,14 @@
                 step1()
                 step2()
                 step3()
-                display() //crease data is global
+                //display() //crease data is global
+                // var done = false 
+                // var stop_ = 0;
+                // while(!done && stop_<50){
+                //     step3();
+                //     stop_+=1;
+                // }
+                // console.log(stop_)
             }
             
             //step 1 is to create a seed of a few random creases from which the rest of the cp will be deterministically generated (except mv uses some random)
@@ -425,7 +432,7 @@
                 step2b();
             }
             
-            //step 3 will find a way to assign mv to the cp
+            //step 3 will find a way to assign mv to the cp, and then display at the end
             function step3(){
                 /*
                 Start by giving each crease a random mv
@@ -435,8 +442,7 @@
                 mvErrors = findMvErrors(vertices) //find all vertices 
                 stop = 0
                 while(mvErrors.length>0 && stop<1000){
-                    //iterate through the list of mv error vertices
-                    //but after the first vertex is addressed, you have to recalculate the list anyways
+                    //take the first of the mv errors, attempt to fix it, then recalculate the list and repeat until no mv errors
                     console.log('ran step 3a')
                     step3a(mvErrors[0].connectedCreases[Math.floor(Math.random()*mvErrors[0].connectedCreases.length)],mvErrors[0]) //arbitrary starting crease
                     stop += 1
@@ -598,7 +604,17 @@
                         fillColor: 'yellow'
                     })
                 }
+
                 mvErrors = findMvErrors(vertices)
+                for(var i = 0; i< vertices.length; i++){
+                    if([vertices[i].x,vertices[i].y].includes(0) || [vertices[i].x,vertices[i].y].includes(grid) ){continue}                    
+                    if(vertices[i].smallAngles.length!=0 && 
+                        vertices[i].smallAngles.filter(element => element[0].mv==element[1].mv).length/vertices[i].smallAngles.length > 0.5){
+                        mvErrors.push(vertices[i])
+                        continue
+                    }
+                } //this time, look for big little big lemma mv errors, just for display
+                if (mvErrors.length == 0){console.log('DONE')} else{console.log("finished step 3")}
                 for(i=0;i<mvErrors.length;i++){
                     new paper.Path.Circle({
                         center: new paper.Point(mvErrors[i].x*scale,mvErrors[i].y*-scale+400),
