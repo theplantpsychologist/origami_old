@@ -128,7 +128,7 @@
                 density = parseFloat(creasedensity.value)
                 //showProgress = document.getElementById('progression').checked
                 if(density>1 || density<0 || grid<1){
-                    alert("Something went wrong. Please remember: \n   The grid size must be an integer greater than or equal to 1 \n   The density must be a decimal between 0 and 1 (inclusive)")
+                    alert("Something went wrong. Please remember: \n   The grid size must be an integer greater than or equal to 1 \n   The density must be a decimal between 0 and 1")
                     return
                 } else if(density==1){alert('Sorry, there is a bug caused by a density of 1. Try something like 0.9999 instead.');return}
             
@@ -226,43 +226,96 @@
             function step2(){
                 /*
                 Fill in creases based on the ones generated in step 1.
+
+                run step 2a until no change
+                    run through all vertices
+                run step 2b until no change
+                    fix one, then run step 2a
+                run step 2c until no change
+
                 The first rule (2a): at vertices which diagonals aren't allowed, make sure they are flat foldable (have exactly 2 or 4 lateral creases)
                 The second rule (2b): at vertices with an odd number of creases and with an angle >= 180, use flat foldability rules to find the guaranteed last crease
                 Repeat the first and second rule until there are no more changes (ie, all vertices are ok, or we need the third rule)
                 The third rule (2c): at vertices with 2 or 4 creases but aren't flat foldable: (cases with 6 are easy, just draw the remaining 2)
-
                 */
-            length0 = creases.length
-            step2a()
-            step2b() //step 2a will be mixed into step 2b
-            lengthf = creases.length
-            
-            if(length0<lengthf){
-                //If something changed, go back to step 2a to try to fix more stuff
-                step2()
-            } else if (length0 == lengthf){
-                //If there was no change, it's time to move on 
-                return
-                //I don't think this block is necessary
-            }
-            invalids = findInvalids(vertices)
-            brake = 0 //for stopping infinite loops
-            while(invalids.length != 0 && brake < 30){
+
+                length0 = creases.length
+                step2a()
+                while(creases.length>length0){
+                    length0 = creases.length 
+                    step2a();
+                }
+                length0 = creases.length
+                step2b()
+                while(creases.length>length0){
+                    invalids = findInvalids(vertices)
+                    if(invalids.length==0){
+                        return
+                    }
+                    length0 = creases.length
+                    step2b(); //within the step2b is to run 2a to check for the consequences of adding the crease
+                }
+                length0 = creases.length
                 step2c()
-                invalids = findInvalids(vertices)    
-                brake += 1 
-            }
+                while(creases.length>length0){
+                    invalids = findInvalids(vertices)
+                    if(invalids.length==0){
+                        return
+                    }
+                    length0 = creases.length
+                    step2c(); //within step2c is to run 2b, which will run through 2a
+                }
+                // length0 = creases.length
+                // step2a()
+                // step2b() //step 2a will be mixed into step 2b
+                // lengthf = creases.length
+                
+                // if(length0<lengthf){
+                //     //If something changed, go back to step 2a to try to fix more stuff
+                //     step2()
+                // } else if (length0 == lengthf){
+                //     //If there was no change, it's time to move on 
+                //     //do step 2a and 2b until you can't anymore
+                //     return
+                //     //I don't think this block is necessary
+                // }
+                // invalids = findInvalids(vertices)
+                // brake = 0 //for stopping infinite loops
+                // while(invalids.length != 0 && brake < 30){
+                //     step2c()
+                //     invalids = findInvalids(vertices)    
+                //     brake += 1 
+                // }
             }
             function findInvalids(vertices){
+
+                //important: need to look for vertices who have doubled creases, or who have creases not at 45 degree angles.
+                //don't necessarily delete them (yet) but need to quarantine them or something, maybe freeze the program and display
+
                 invalids = []
                 loop: for(i=0;i<vertices.length;i++){
+                    for (var j = 0; j<vertices[i].connectedCreases.length; j++){
+                        // if(Math.abs(vertices[i].vectors[j][0]>1) || Math.abs(vertices[i].vectors[j][1]>1)){
+                        //     console.log('weird angle found')
+                        //     console.table(vertices[i])
+                        // }
+                        // for (var k = j+1; k<vertices[i].connectedCreases.length; k++){
+                        //     if(vertices[i].vectors[j][0]==vertices[i].vectors[k][0] && vertices[i].vectors[j][1]==vertices[i].vectors[k][1]){
+                        //         console.log("overlap found")
+                        //         console.table(vertices[i])
+                        //         break
+                        //     }   
+                        // }
+                    }
+
                     vertices[i].getCreasesAsVectors()
                     vertices[i].getAngles()
                     if(
                         ![vertices[i].x,vertices[i].y].includes(0) && //if it's not on the edge,
                         ![vertices[i].x,vertices[i].y].includes(grid)&&
                             (vertices[i].connectedCreases.length%2==1 || //and there's either an odd number of creases,
-                            //Math.abs(vertices[i].angles.map((element,index) => {return element*(index%2 *2 -1)}).reduce((acc,cur)=> acc+cur))!=Math.PI)//or the sum of every other angle is not 180,
+                            //Math.abs(vertices[i].angles.map((element,index) => {return element*(index%2 *2 -1)}).reduce((acc,cur)=> acc+cur))!=Math.PI)
+                            //or the sum of every other angle is not 180,
                             Math.abs(vertices[i].relativeAngles.map((element,index) => (index%2)*element).reduce((acc,cur)=> acc+cur))!=Math.PI)    
                         ){
                         invalids.push(vertices[i])
@@ -334,23 +387,37 @@
                         vertices[i].getCreasesAsVectors();
                         vertices[i].getAngles();
                         if(vertices[i].vectors.map(v=>v[0]).reduce((acc,cur)=>acc+cur)==0 && 
-                            vertices[i].vectors.map(v=>v[0]).reduce((acc,cur)=>acc+cur)==0){
+                            vertices[i].vectors.map(v=>v[1]).reduce((acc,cur)=>acc+cur)==0){
                             //there is an annoying case that doesn't fit the normal rule, due to negative angles and other complications
                             //this case happens to be the only case for a 5 vertex whose sum of the vectors is 0
+                            console.log("found a weird 5 at", vertices[i].x, vertices[i].y)
+                            //the missing crease will be the 4th diagonal
+                            diagonal_vectors = [[1,1],[1,-1],[-1,-1],[-1,1]]
+                            for(var j = 0; j<4; j++){
+                                if (!vertices[i].vectors.includes(diagonal_vectors[j])){
+                                    v2 = new Vertex(vertices[i].x+diagonal_vectors[j][0],vertices[i].y+diagonal_vectors[j][1])
+                                    break
+                                }
+                            }
+                            vertices[i].addCrease(v2)
+                            continue
+                        } else {
+                            //if not that case, then the last angle goes opposite the direction of the sum of the vectors
+                            newAngle = vertices[i].angles[0]-vertices[i].angles[1]+vertices[i].angles[2]-vertices[i].angles[3]+vertices[i].angles[4]-Math.PI
+                            if (vertices[i].angles.includes(newAngle)){
+                                console.log('5 overlap avoided',vertices[i].x,vertices[i].y,vertices[i].vectors)
+                                continue
+                            } else {console.log('normal 5 solved', vertices[i].x,vertices[i].y)}
 
-                        }
-                        
-                        newAngle = vertices[i].angles[0]-vertices[i].angles[1]+vertices[i].angles[2]-vertices[i].angles[3]+vertices[i].angles[4]-Math.PI
-                        if (vertices[i].angles.includes(newAngle)){
-                            console.log('5 overlap avoided',vertices[i].x,vertices[i].y,vertices[i].vectors)
+                            v2 = new Vertex(vertices[i].x + (Math.abs(Math.cos(newAngle))>0.01? Math.cos(newAngle)/Math.abs(Math.cos(newAngle)):0),
+                                            vertices[i].y + (Math.abs(Math.sin(newAngle))>0.01? Math.sin(newAngle)/Math.abs(Math.sin(newAngle)):0))
+                                            //find the position based on the angle, but .ceil rounds up on negatives, and also watch out for div by 0
+                            //v2 = new Vertex(vertices[i].vectors.map(v=>v[0]).reduce((acc,cur)=>acc+cur),vertices[i].vectors.map(v=>v[1]).reduce((acc,cur)=>acc+cur))
+                            vertices[i].addCrease(v2)
                             continue
                         }
+                        
 
-                        v2 = new Vertex(vertices[i].x + (Math.abs(Math.cos(newAngle))>0.01? Math.cos(newAngle)/Math.abs(Math.cos(newAngle)):0),
-                                        vertices[i].y + (Math.abs(Math.sin(newAngle))>0.01? Math.sin(newAngle)/Math.abs(Math.sin(newAngle)):0))
-                                        //find the position based on the angle, but .ceil rounds up on negatives, and also watch out for div by 0
-                        vertices[i].addCrease(v2)
-                        continue
                     }
                     step2a();
                     if(vertices[i].connectedCreases.length==3){
@@ -378,12 +445,14 @@
                         vertices[i].addCrease(v2)
                         continue
                     }
+                    step2a();
                 }
                 //note: can use list inequalities to find the counterclockwise order of angles
             }
             function step2c(){
                 //solve ONE vertex with 2 or 4 creases but aren't flat foldable yet. (vertices with 6 can be done earlier)
-                //Will need to add two new creases: decide 1 now, and then do step 2b
+                //after solving the ONE vertex, rerun step 2a and 2b until we need to do 2c again
+                //Will need to add two new creases: decide 1 now, and then do step 2b to decide the other
                 //To decide now, first look at available directions. If there are any adjacent vertices who are also invalid or are on the edge, choose it.
                 //If not, then pick any random direction, then run step 2b.
                 //note: this one can use invalids instead of vertices since step2() will check for invalids before running step2c()
@@ -618,7 +687,7 @@
                 for(i=0;i<mvErrors.length;i++){
                     new paper.Path.Circle({
                         center: new paper.Point(mvErrors[i].x*scale,mvErrors[i].y*-scale+400),
-                        radius: scale/3,
+                        radius: scale/6,
                         opacity: 0.2,
                         fillColor: 'purple'
                     })
