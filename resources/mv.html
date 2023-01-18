@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MV Assignment</title>
+    <link rel="stylesheet" type = "text/css" href="../style.css">
+</head>
+<body>
+    <div id='wrapper'>
+        <div id='head'>
+            <a id = "name" href="../index.html"><img src="../img/logo.svg" style="width: 50%;" alt="logo"></a>
+            <hr>
+            <div id='navigator'>
+                <a class="navlink" href="../index.html">Home</a>
+                <a class="navlink" href="../about.html">Origami</a>
+                <a class="navlink" href="../resources.html">Resources</a>
+                <a class="navlink" href="../other.html">Other</a>
+            </div>
+        </div>
+        <hr>
+        <h1>Automated Mountain-Valley Assignment</h1>
+        <div>
+            <noscript>Please enable javascript to use this app.</noscript>
+            <p id="import">Upload a .cp file below. Use auxilary lines to indicate creases of unknown MV.</p>
+            <div>
+                <input type="file" id="inputfile" name="inputfile" />
+                <pre id="output"></pre>
+                <script>
+                    function UploadCp() {
+                        const reader = new FileReader();
+                        reader.onload = function () {
+                            input = reader.result.split("\n");
+                            start(input);
+                        };
+                        const fileSelector = document.getElementById("inputfile");
+                        if (fileSelector) {
+                            reader.readAsText(fileSelector.files[0]);
+                        } else {
+                            console.log("File input element not present");
+                        }
+                    }
+                </script>
+                <button id="upload" type=button onclick="UploadCp()">Upload</button>
+            </div>
+        </div>
+
+        <div>
+            <button type = button onclick="dfs(inputcp)">Find one solution</button>
+            <button type = button onclick="test2()">Find all solutions</button>
+            <button type = button onclick="download()">Save as .cp file</button>
+        </div> 
+        <br>
+
+        <canvas id="square" width="800" height = "500"></canvas>
+        <script src="paper-core.js"></script>
+        <script src="origami.js"></script>
+        <script type="text/javascript" data-paper-ignore="true">
+            paper.setup(document.getElementById("square"))
+            var inputcp = null;
+            function start(input){
+                paper.project.clear();
+                console.log("starting");
+                inputcp = readCpFile(input);
+                inputcp.displayCp(10,50,390,430)
+            }
+
+            function dfs(inputcp){
+                //check for angular flat foldability
+                //check for global self intersection
+                if(!inputcp.angularFoldable){
+                    alert("This crease pattern has angular flat foldability issues. Please fix the highlighted vertices and try again.")
+                    return
+                }
+            }
+        </script>
+
+
+    
+    </div>
+</body>
+</html>
