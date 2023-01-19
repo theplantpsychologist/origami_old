@@ -71,23 +71,24 @@ class Vertex {
         v2.connectedCreases.push(crease)
     }*/
     checkAngularFlatFoldability(){
+        console.log(this)
         if(this.x*this.y*(1-this.x)*(1-this.y)==0){this.angularFoldable=true; return true;} //if the vertex is on the edge
         if(this.creases.length%2!=0){this.angularFoldable=false; return false;}
         //get angles of creases. For each crease, use atan2 on the other vertex
-        angles = []
+        var angles = []
         for(i=0; i<this.creases.length; i++){
             angles.push(
-                atan2(this.creases[i].vertices[0].y - this.y,this.creases[i].vertices[0].x - this.x)+
-                atan2(this.creases[i].vertices[1].y - this.y,this.creases[i].vertices[1].x - this.x) 
+                Math.atan2(this.creases[i].vertices[0].y - this.y,this.creases[i].vertices[0].x - this.x)+
+                Math.atan2(this.creases[i].vertices[1].y - this.y,this.creases[i].vertices[1].x - this.x) 
                 //one of thee crease's vertices will be this vertex, so the atan2 will return 0
             ) 
         }
         angles.sort((a,b)=>a-b)
         //Now add and subtract the sum of every other angle. 2nd - 1st + 4th - 3rd, etc
-        angles = angles.map(a => test.indexOf(a)%2==0? -1*a:a)
-        total = angles.reduce((accumulator,currentvalue) => accumulator + currentvalue)
+        angles = angles.map(a => angles.indexOf(a)%2==0? -1*a:a)
+        var total = angles.reduce((accumulator,currentvalue) => accumulator + currentvalue)
 
-        if(total==Math.PI){this.angularFoldable=true;return true}
+        if(eq(total,Math.PI)){this.angularFoldable=true;return true}
         else{this.angularFoldable=false;return false}
     }
 }
@@ -103,9 +104,9 @@ class CP {
         this.vertices = vertices;
         this.creases = creases;
         this.angularFoldable = true;
-        for(i=0;i<this.vertices.length;i++){
-            this.vertices[i].checkAngularFlatFoldability
-            if(!this.vertices[i].checkAngularFlatFoldability){
+        this.vertices[5].checkAngularFlatFoldability()
+        for(j=0;j<this.vertices.length;j++){ //this needs to be not i, bc i is used in a loop when checking a vertex
+            if(!this.vertices[j].checkAngularFlatFoldability()){
                 this.angularFoldable = false;
             }
         }
@@ -140,8 +141,8 @@ class CP {
 
         var errorcircles = new paper.Group();
         for(i=0;i<this.vertices.length;i++){
-            if(!this.vertices[i].checkAngularFlatFoldability){
-                circle = new paper.Path.Circle({
+            if(!this.vertices[i].angularFoldable){
+                var circle = new paper.Path.Circle({
                     center: new paper.Point(convertx(this.vertices[i].x),converty(this.vertices[i].y)),
                     radius: (x2-x1)/30,
                     opacity: 0.3,
@@ -176,10 +177,10 @@ function readCpFile(file){
         v1 = null;
         v2 = null;
         for(j=0;j<vertices.length;j++){
-            if(vertices[j].x == line[1] && vertices[j].y == line[2]){
+            if(eq(vertices[j].x,line[1]) && eq(vertices[j].y,line[2])){
                 v1 = vertices[j];
             }
-            if(vertices[j].x == line[3] && vertices[j].y == line[4]){
+            if(eq(vertices[j].x,line[3]) && eq(vertices[j].y,line[4])){
                 v2 = vertices[j];
             }
         }
@@ -197,4 +198,15 @@ function readCpFile(file){
         creases.push(crease)
     }
     return new CP(vertices,creases)
+}
+
+
+
+
+
+
+
+
+function eq(a,b){
+    if(Math.abs(a-b)>10**(-12)){return false} else {return true}
 }
