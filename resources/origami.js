@@ -52,6 +52,8 @@ class Vertex {
         this.y = y
         this.creases = []
         this.angles = []
+        this.xf = x; //positions in the folded figure or x ray
+        this.yf = y;
         //this.angularFoldable = null;
     }
     /*addCrease(v2){
@@ -131,7 +133,7 @@ class CP {
         }
     }
     findFaces(){
-        //find faces
+        //Create face objects based on the creases
         this.faces = []
         for(i=0;i<this.creases.length;i++){
             if(this.creases[i].mv== 'E'){continue}
@@ -139,7 +141,6 @@ class CP {
             //Keep turning right until you come back to this crease. See if this face is already found or not.
             //Do this for both directions.
             for(j = 0;j<2;j++){
-                console.log(i,j)
                 var creaseGroup = []
                 var vertexGroup = []; 
                 var currentCrease;
@@ -180,7 +181,36 @@ class CP {
                 }
             }
         }
+
+        //now we make the connectivity matrix
+        const n = this.faces.length
+        this.matrix = []
+        for(i=0;i<n;i++){
+            this.matrix.push(Array.apply(null, Array(n))) //make an empty nxn matrix
+        }
+        for(i=0;i<this.creases.length;i++){
+            if(this.creases[i].faces.length !=2){continue}
+            var value
+            if(this.creases[i].mv == 'M'){value = 1}
+            else if(this.creases[i].mv == 'V'){value = -1}
+            else if(this.creases[i].mv == 'A'){value = 0} else{continue} //i think? shouldn' be any edges here
+            this.matrix[this.faces.indexOf(this.creases[i].faces[1])][this.faces.indexOf(this.creases[i].faces[0])] = value
+            this.matrix[this.faces.indexOf(this.creases[i].faces[0])][this.faces.indexOf(this.creases[i].faces[1])] = value
+        }
+
         return this.faces
+    }
+    foldXray(){
+        //assign folded coordinates to vertices
+        var startingFace = this.faces[0] //this is arbitrarily chosen
+        const n = this.faces.length
+        for(i=0;i<1;i++){
+            for(j=i;j<n;j++){
+                if(this.matrix[i][j]!=null){
+                    1+1
+                }
+            }
+        }
     }
     displayCp(x1,y1,x2,y2){ //so you can position where to draw it
         function convertx(cp){
@@ -232,11 +262,13 @@ class CP {
         for(i=0;i<this.faces.length;i++){
             var face = new paper.Path();
             for(j=0;j<this.faces[i].vertices.length;j++){
-                face.add(new paper.Point(convertx(this.faces[i].vertices[j].x),converty(this.faces[i].vertices[j].y)))
+                face.add(new paper.Point(convertx(this.faces[i].vertices[j].xf),converty(this.faces[i].vertices[j].yf)))
             }
             face.closed = true;
             face.strokeColor = 'black'
-            face.fillColor = '#E4C70D'
+            face.opacity = 0.1
+            face.fillColor = 'black'
+            face.strokeWidth = (x2-x1)/200;
         }
     }
 }
@@ -311,7 +343,6 @@ function readCpFile(file){
     if(!bottomLeft){cornerPoint = new Vertex(0,0); vertices.push(cornerPoint); bottomEdge.push(cornerPoint);leftEdge.push(cornerPoint)}
 
     edges = [topEdge.sort((a,b)=>(a.x- b.x)),rightEdge.sort((a,b)=>(a.y- b.y)),bottomEdge.sort((a,b)=>(a.x- b.x)),leftEdge.sort((a,b)=>(a.y- b.y))]
-    console.log(edges)
     for(j=0;j<4;j++){
         for(i = 0;i<edges[j].length-1;i++){
             edgeCrease = new Crease(edges[j][i],edges[j][i+1],'E');
@@ -323,7 +354,27 @@ function readCpFile(file){
     return new CP(vertices,creases)
 }
 
+function downloadCpFile(CP){
+    console.log("stay tuned")
+}
 
+function reflect(v1,v2,v3){
+    //v1 is the point being reflected, and v2 and v3 define the reflection line
+    // https://stackoverflow.com/questions/3306838/algorithm-for-reflecting-a-point-across-a-line
+    x1 = v1.x
+    y1 = v1.y
+    x2 = v2.x
+    y2 = v2.y
+    x3 = v3.x
+    y3 = v3.y
+    const m = (y3-y2)/(x3-x2)
+    const c = (x3*y2-x2*y3)/(x3-x2)
+    const d = (x1 + (y1 - c)*m)/(1 + m^2)
+
+    const x4 = 2*d - x1
+    const y4 = 2*d*m - y1 + 2*c
+    return [x4,y4]
+}
 
 
 
@@ -332,31 +383,6 @@ function readCpFile(file){
 
 function eq(a,b){
     if(Math.abs(a-b)>10**(-12)){return false} else {return true}
-}
-
-function areArraysEqualSets(a1, a2) {
-    //https://stackoverflow.com/questions/6229197/how-to-know-if-two-arrays-have-the-same-values/55614659#55614659
-    const superSet = {};
-    for (const i of a1) {
-      const e = i + typeof i;
-      superSet[e] = 1;
-    }
-  
-    for (const i of a2) {
-      const e = i + typeof i;
-      if (!superSet[e]) {
-        return false;
-      }
-      superSet[e] = 2;
-    }
-  
-    for (let e in superSet) {
-      if (superSet[e] === 1) {
-        return false;
-      }
-    }
-  
-    return true;
 }
 function areFacesEqual(face,group){
     for(l=0;l<face.length;l++){
