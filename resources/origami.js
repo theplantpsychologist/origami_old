@@ -51,6 +51,7 @@ class Vertex {
         this.x = x
         this.y = y
         this.creases = []
+        this.angles = []
         //this.angularFoldable = null;
     }
     /*addCrease(v2){
@@ -71,25 +72,37 @@ class Vertex {
         v2.connectedCreases.push(crease)
     }*/
     checkAngularFlatFoldability(){
-        console.log(this)
-        if(this.x*this.y*(1-this.x)*(1-this.y)==0){this.angularFoldable=true; return true;} //if the vertex is on the edge
-        if(this.creases.length%2!=0){this.angularFoldable=false; return false;}
+
         //get angles of creases. For each crease, use atan2 on the other vertex
-        var angles = []
+        this.angles = []
         for(i=0; i<this.creases.length; i++){
-            angles.push(
+            this.angles.push(
                 Math.atan2(this.creases[i].vertices[0].y - this.y,this.creases[i].vertices[0].x - this.x)+
                 Math.atan2(this.creases[i].vertices[1].y - this.y,this.creases[i].vertices[1].x - this.x) 
                 //one of thee crease's vertices will be this vertex, so the atan2 will return 0
             ) 
         }
-        angles.sort((a,b)=>a-b)
+        this.creases.sort((a,b)=>this.angles[this.creases.indexOf(a)]-this.angles[this.creases.indexOf(b)]) //sort creases based on angle
+        this.angles.sort((a,b)=>a-b)
         //Now add and subtract the sum of every other angle. 2nd - 1st + 4th - 3rd, etc
-        angles = angles.map(a => angles.indexOf(a)%2==0? -1*a:a)
-        var total = angles.reduce((accumulator,currentvalue) => accumulator + currentvalue)
+        var total = this.angles.map(a => this.angles.indexOf(a)%2==0? -1*a:a).reduce((accumulator,currentvalue) => accumulator + currentvalue)
 
-        if(eq(total,Math.PI)){this.angularFoldable=true;return true}
-        else{this.angularFoldable=false;return false}
+        if(eq(this.x*this.y*(1-this.x)*(1-this.y),0)){this.angularFoldable=true; return true;} //if the vertex is on the edge
+        if(this.creases.length%2!=0){this.angularFoldable=false; return false;} //If there's an odd number of creases
+        if(!eq(total,Math.PI)){this.angularFoldable=false;return false} //if the sum of every other angle is not 180
+        //m-v = -+2
+        var M = 0;
+        var V = 0;
+        var A = 0;
+        for(i=0;i<this.creases.length; i++){
+            if(this.creases[i].mv == 'M'){M+=1}
+            if(this.creases[i].mv == 'V'){V+=1}
+            if(this.creases[i].mv == 'A'){A+=1}
+        }
+        if(Math.max(M,V)>(this.creases.length /2 + 1)){this.angularFoldable=false;return false} //if m-v = -+2 is violated already
+
+        //we'll leave big little big lemma for self intersection... maybe
+        else{this.angularFoldable=true;return true}
     }
 }
 class Crease {
@@ -99,12 +112,18 @@ class Crease {
         this.faces = []
     }
 }
+
+class Face {
+    constructor(creases,vertices){
+        this.creases = creases;
+        this.vertices = vertices;
+    }
+}
 class CP {
     constructor(vertices,creases){
         this.vertices = vertices;
         this.creases = creases;
         this.angularFoldable = true;
-        this.vertices[5].checkAngularFlatFoldability()
         for(j=0;j<this.vertices.length;j++){ //this needs to be not i, bc i is used in a loop when checking a vertex
             if(!this.vertices[j].checkAngularFlatFoldability()){
                 this.angularFoldable = false;
@@ -113,7 +132,62 @@ class CP {
     }
     findFaces(){
         //find faces
-        1+1
+        this.faces = []
+        for(i=0;i<this.creases.length;i++){
+            console.log([this.creases[i].vertices[0].x,this.creases[i].vertices[0].y,this.creases[i].vertices[1].x,this.creases[i].vertices[1].y,])
+            //Find the two faces on either side of the crease
+            //Keep turning right until you come back to this crease. See if this face is already found or not.
+            //Do this for both directions.
+            for(j = 0;j<2;j++){
+                var creaseGroup = []
+                var vertexGroup = []; 
+                var currentCrease;
+                var currentVertex;
+                var nextCrease;
+
+                currentCrease = this.creases[i];
+                currentVertex = this.vertices[j];
+                while(nextCrease!=this.creases[i]){
+                    nextCrease = currentVertex.creases[currentVertex.creases.indexOf(currentCrease) + 1]
+                    if(nextCrease == undefined){nextCrease = currentVertex.creases[0]}//loop around if you were at the end of the list
+                    creaseGroup.push(nextCrease)
+                    vertexGroup.push(currentVertex)
+                    currentCrease = nextCrease
+                    if(currentCrease.vertices[0]==currentVertex){currentVertex = currentCrease.vertices[1]} else {currentVertex = currentCrease.vertices[0]}
+                    if(this.creases[i].vertices.includes(currentVertex)){
+                        creaseGroup.push(this.creases[i]);
+                        vertexGroup.push(currentVertex);
+                        break
+                    }
+                }
+                if(creaseGroup.length<3){
+                    console.log("found stub face")
+                    continue
+                }
+                if(creaseGroup.length>10){
+                    console.log("found outside face")
+                    continue
+                }
+                var isNew = true;
+                for(var k=0;k<this.faces.length;k++){
+                    if(areArraysEqualSets(this.faces[k].creases,creaseGroup)){
+                        this.creases[i].faces.push(this.faces[k])
+                        var isNew = false;
+                        console.log("found existing face")
+                        console.log(vertexGroup)
+                        break
+                    }
+                }
+                if(isNew){
+                    var newFace = new Face(creaseGroup,vertexGroup)
+                    this.faces.push(newFace);
+                    this.creases[i].faces.push(newFace);
+                    console.log("found new face")
+                    console.log(vertexGroup)
+                }
+            }
+        }
+        return this.faces
     }
     displayCp(x1,y1,x2,y2){ //so you can position where to draw it
         function convertx(cp){
@@ -152,6 +226,25 @@ class CP {
             }
         }
     }
+    displayXray(x1,y1,x2,y2){
+        function convertx(cp){
+            //Converting cp coords, which range from 0,1, into js coords which range from x1,x2 and y1,y2
+            return x1+cp*(x2-x1);
+        }
+        function converty(cp){
+            //also the y coordinates are displayed upside down
+            return y1-cp*(y1-y2);
+        }
+        var xray = new paper.Group();
+        for(i=0;i<this.faces.length;i++){
+            var face = new paper.Path();
+            for(j=0;j<this.faces[i].vertices.length;j++){
+                face.add(new paper.Point(convertx(this.faces[i].vertices[j].x),converty(this.faces[i].vertices[j].y)))
+            }
+            face.strokeColor = 'black'
+            face.fillColor = 'yellow'
+        }
+    }
 }
 
 function readCpFile(file){
@@ -170,7 +263,7 @@ function readCpFile(file){
 
         if(line[0]=='2'){mv='M'}
         else if(line[0]=='3'){mv='V'}
-        else if(line[0]=='4'){mv='aux'}
+        else if(line[0]=='4'){mv='A'}
         else{continue} //includes edges
         line = line.map(parseFloat).map(convert)
 
@@ -210,3 +303,28 @@ function readCpFile(file){
 function eq(a,b){
     if(Math.abs(a-b)>10**(-12)){return false} else {return true}
 }
+
+function areArraysEqualSets(a1, a2) {
+    //https://stackoverflow.com/questions/6229197/how-to-know-if-two-arrays-have-the-same-values/55614659#55614659
+    const superSet = {};
+    for (const i of a1) {
+      const e = i + typeof i;
+      superSet[e] = 1;
+    }
+  
+    for (const i of a2) {
+      const e = i + typeof i;
+      if (!superSet[e]) {
+        return false;
+      }
+      superSet[e] = 2;
+    }
+  
+    for (let e in superSet) {
+      if (superSet[e] === 1) {
+        return false;
+      }
+    }
+  
+    return true;
+  }

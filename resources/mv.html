@@ -53,7 +53,7 @@
         </div> 
         <br>
 
-        <canvas id="square" width="800" height = "500"></canvas>
+        <canvas id="square" width="800" height = "900"></canvas>
         <script src="paper-core.js"></script>
         <script src="origami.js"></script>
         <script type="text/javascript" data-paper-ignore="true">
@@ -64,6 +64,9 @@
                 console.log("starting");
                 inputcp = readCpFile(input);
                 inputcp.displayCp(10,50,390,430)
+
+                //inputcp.findFaces();
+                //inputcp.displayXray(10,450,390,830);
             }
 
             function dfs(inputcp){
@@ -73,6 +76,7 @@
                     alert("This crease pattern has angular flat foldability issues. Please fix the highlighted vertices and try again.")
                     return
                 }
+
             }
         </script>
 
