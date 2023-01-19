@@ -134,11 +134,12 @@ class CP {
         //find faces
         this.faces = []
         for(i=0;i<this.creases.length;i++){
-            console.log([this.creases[i].vertices[0].x,this.creases[i].vertices[0].y,this.creases[i].vertices[1].x,this.creases[i].vertices[1].y,])
+            if(this.creases[i].mv== 'E'){continue}
             //Find the two faces on either side of the crease
             //Keep turning right until you come back to this crease. See if this face is already found or not.
             //Do this for both directions.
             for(j = 0;j<2;j++){
+                console.log(i,j)
                 var creaseGroup = []
                 var vertexGroup = []; 
                 var currentCrease;
@@ -146,7 +147,7 @@ class CP {
                 var nextCrease;
 
                 currentCrease = this.creases[i];
-                currentVertex = this.vertices[j];
+                currentVertex = this.creases[i].vertices[j];
                 while(nextCrease!=this.creases[i]){
                     nextCrease = currentVertex.creases[currentVertex.creases.indexOf(currentCrease) + 1]
                     if(nextCrease == undefined){nextCrease = currentVertex.creases[0]}//loop around if you were at the end of the list
@@ -161,29 +162,21 @@ class CP {
                     }
                 }
                 if(creaseGroup.length<3){
-                    console.log("found stub face")
-                    continue
-                }
-                if(creaseGroup.length>10){
-                    console.log("found outside face")
                     continue
                 }
                 var isNew = true;
+                
                 for(var k=0;k<this.faces.length;k++){
-                    if(areArraysEqualSets(this.faces[k].creases,creaseGroup)){
+                    if(areFacesEqual(this.faces[k].vertices,vertexGroup)){
                         this.creases[i].faces.push(this.faces[k])
                         var isNew = false;
-                        console.log("found existing face")
-                        console.log(vertexGroup)
-                        break
+
                     }
                 }
                 if(isNew){
                     var newFace = new Face(creaseGroup,vertexGroup)
                     this.faces.push(newFace);
                     this.creases[i].faces.push(newFace);
-                    console.log("found new face")
-                    console.log(vertexGroup)
                 }
             }
         }
@@ -198,9 +191,9 @@ class CP {
             //also the y coordinates are displayed upside down
             return y1-cp*(y1-y2);
         }
-        var border = new paper.Path.Rectangle(x1,y1,x2-x1,y2-y1);
-        border.strokeColor = 'black';
-        border.strokeWidth = (x2-x1)/100;
+        //var border = new paper.Path.Rectangle(x1,y1,x2-x1,y2-y1);
+        //border.strokeColor = 'black';
+        //border.strokeWidth = (x2-x1)/100;
 
         var creaselines = new paper.Group();
         for(i=0;i<this.creases.length;i++){
@@ -208,7 +201,7 @@ class CP {
                 new paper.Point(convertx(this.creases[i].vertices[0].x),converty(this.creases[i].vertices[0].y)),
                 new paper.Point(convertx(this.creases[i].vertices[1].x),converty(this.creases[i].vertices[1].y))
             )
-            line.strokeColor = creases[i].mv=='M'?"#EB5160" : creases[i].mv=='V'?"#33A1FD" : "#0DE4B3"
+            line.strokeColor = creases[i].mv=='M'?"#EB5160" : creases[i].mv=='V'?"#33A1FD" : creases[i].mv=='A'?"#0DE4B3":'black'
             creaselines.addChild(line);
         }
         creaselines.strokeWidth = (x2-x1)/200;
@@ -241,8 +234,9 @@ class CP {
             for(j=0;j<this.faces[i].vertices.length;j++){
                 face.add(new paper.Point(convertx(this.faces[i].vertices[j].x),converty(this.faces[i].vertices[j].y)))
             }
+            face.closed = true;
             face.strokeColor = 'black'
-            face.fillColor = 'yellow'
+            face.fillColor = '#E4C70D'
         }
     }
 }
@@ -290,6 +284,42 @@ function readCpFile(file){
         v2.creases.push(crease);
         creases.push(crease)
     }
+
+    //Now go back in and put the edges based on the vertices that are on the edge
+    var topEdge = []
+    var rightEdge = []
+    var bottomEdge = []
+    var leftEdge = []
+    var topLeft = false
+    var topRight = false
+    var bottomLeft = false
+    var bottomRight = false
+    for(i = 0; i<vertices.length; i++){
+        if(eq(vertices[i].x,0)){leftEdge.push(vertices[i])}
+        if(eq(vertices[i].y,0)){bottomEdge.push(vertices[i])}
+        if(eq(vertices[i].x,1)){rightEdge.push(vertices[i])}
+        if(eq(vertices[i].y,1)){topEdge.push(vertices[i])}
+
+        if(eq(vertices[i].x,0) && eq(vertices[i].y,0)){bottomLeft = true}
+        if(eq(vertices[i].x,1) && eq(vertices[i].y,1)){topRight = true}
+        if(eq(vertices[i].x,0) && eq(vertices[i].y,1)){topLeft = true}
+        if(eq(vertices[i].x,1) && eq(vertices[i].y,0)){bottomRight = true}
+    }
+    if(!topLeft){cornerPoint = new Vertex(0,1); vertices.push(cornerPoint); topEdge.push(cornerPoint);leftEdge.push(cornerPoint)}
+    if(!topRight){cornerPoint = new Vertex(1,1); vertices.push(cornerPoint); topEdge.push(cornerPoint);rightEdge.push(cornerPoint)}
+    if(!bottomRight){cornerPoint = new Vertex(1,0); vertices.push(cornerPoint); bottomEdge.push(cornerPoint);rightEdge.push(cornerPoint)}
+    if(!bottomLeft){cornerPoint = new Vertex(0,0); vertices.push(cornerPoint); bottomEdge.push(cornerPoint);leftEdge.push(cornerPoint)}
+
+    edges = [topEdge.sort((a,b)=>(a.x- b.x)),rightEdge.sort((a,b)=>(a.y- b.y)),bottomEdge.sort((a,b)=>(a.x- b.x)),leftEdge.sort((a,b)=>(a.y- b.y))]
+    console.log(edges)
+    for(j=0;j<4;j++){
+        for(i = 0;i<edges[j].length-1;i++){
+            edgeCrease = new Crease(edges[j][i],edges[j][i+1],'E');
+            creases.push(edgeCrease)
+            edges[j][i].creases.push(edgeCrease)
+            edges[j][i+1].creases.push(edgeCrease)
+        }
+    }
     return new CP(vertices,creases)
 }
 
@@ -327,4 +357,13 @@ function areArraysEqualSets(a1, a2) {
     }
   
     return true;
-  }
+}
+function areFacesEqual(face,group){
+    for(l=0;l<face.length;l++){
+        if(!group.includes(face[l])){return false}
+    }
+    for(l=0;l<group.length;l++){
+        if(!face.includes(group[l])){return false}
+    }
+    return true
+}

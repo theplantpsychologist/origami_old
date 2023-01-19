@@ -73,11 +73,31 @@
                 //check for angular flat foldability
                 //check for global self intersection
                 if(!inputcp.angularFoldable){
-                    alert("This crease pattern has angular flat foldability issues. Please fix the highlighted vertices and try again.")
+                    alert("This crease pattern has local flat foldability issues. Please fix the highlighted vertices and try again.")
                     return
                 }
+                inputcp.findFaces();
+                inputcp.displayXray(10,450,390,830);
 
+                //dfs will run a dfs of a binary tree made of PotentialCP until one solution is found
+                //it's also running a bfs on a connectivity matrix of the faces. for n faces, we'll store it as an nxn matrix
+                //a 0 in spot (i,j) means faces i and j are not connected
+                //a
             }
+
+            class PotentialCP extends CP{
+                //this is the node of a binary tree. the input cp will be the root node.
+
+                //has a parent and up to 2 children: one m and one v.
+                //also has an attribute if it's "alive" or not
+                //if it has been checked to be alive, create a mountain child. (unless the cp is done)
+                //if it has been checked to not be alive, no more children, and tell the parent
+
+                //if it's mountain child is dead, create a valley child.
+                //If the valley child also dies, be marked as dead and go up to parent.
+            }
+
+
         </script>
 
 
