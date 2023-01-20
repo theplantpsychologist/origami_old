@@ -225,7 +225,7 @@ class CP {
             }
         }
         spread(startingFace)
-    /*
+    
         for(const face of this.faces){
             console.log("placing",face)
 
@@ -234,18 +234,20 @@ class CP {
             for(const vertex of face.vertices){
                 [vertex.xf,vertex.yf] = [vertex.x,vertex.y]
             }
+            var currentFace = face
             while(stepsAway>0){
                 //
                 console.log("step",stepsAway)
-                var neighbor = face.neighbors.find(element=>element.distance <=stepsAway)
-                console.log("neighbors",face.neighbors)
+                var neighbor = currentFace.neighbors.find(element=>element.distance ==stepsAway-1)
+                console.log("neighbors",currentFace.neighbors)
                 console.log(neighbor)
-                var reflector = face.creases.find(element=>neighbor.creases.includes(element))//this.matrix[index][this.faces.indexOf(neighbor)]
+                var reflector = currentFace.creases.find(element=>neighbor.creases.includes(element))//this.matrix[index][this.faces.indexOf(neighbor)]
                 reflectFace(face,reflector)
                 stepsAway = neighbor.distance
+                currentFace = neighbor
             }
         }
-        */
+        
 
         //for each face, find the path to the starting face. reset xf = x before doing anything
         //keep reflecting along the path, updating xf until you get get to the starting face
@@ -287,14 +289,22 @@ class CP {
             }
         }
     }
-    displayXray(x1,y1,x2,y2){
+    displayXray(xc,yc,scale){
+        var centerx = 0
+        var centery = 0
+        for(const vertex of this.vertices){centerx += vertex.xf; centery += vertex.yf}
+        centerx = centerx/this.vertices.length
+        centery = centery/this.vertices.length
+
         function convertx(cp){
-            //Converting cp coords, which range from 0,1, into js coords which range from x1,x2 and y1,y2
-            return x1+cp*(x2-x1);
+            //Converting cp coords, which range from 0,1, into js coords centered at xc,yc
+            //return x1+cp*(x2-x1);
+            return (cp-centerx)*scale+xc
         }
         function converty(cp){
             //also the y coordinates are displayed upside down
-            return y1-cp*(y1-y2);
+            //return y1-cp*(y1-y2);
+            return(cp-centery)*scale+yc
         }
         var xray = new paper.Group();
         for(i=0;i<this.faces.length;i++){
@@ -306,8 +316,8 @@ class CP {
             face.strokeColor = 'black'
             face.opacity = 0.1
             face.fillColor = 'black'
-            face.strokeWidth = (x2-x1)/200;
-
+            face.strokeWidth = (scale)/200;
+            /* for displaying distance from center
             var centerx = 0
             var centery = 0
             for(const vertex of this.faces[i].vertices){centerx += vertex.x; centery += vertex.y}
@@ -318,9 +328,8 @@ class CP {
                 converty(centery))
             var text = new paper.PointText(center)
             text.content = this.faces[i].distance
+            */
         }
-        var bruh = new paper.PointText(new paper.Point(200,200))
-        bruh.content = 'bruh'
     }
 }
 
