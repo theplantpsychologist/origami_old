@@ -48,7 +48,6 @@
 
         <div>
             <button type = button onclick="dfs(inputcp)">Find one solution</button>
-            <button type = button onclick="download()">Save as .cp file</button>
         </div> 
         <br>
 
@@ -75,10 +74,9 @@
                     alert("This crease pattern has local flat foldability issues. Please fix the highlighted vertices and try again.")
                     return
                 }
-                inputcp.findFaces();
+                inputcp.findFaces(); //takes roughly 1ms per face to find face, fold xray, and display
                 inputcp.foldXray();
                 inputcp.displayXray(200,640,380);
-
                 //dfs will run a dfs of a binary tree made of PotentialCP until one solution is found
                 //it's also running a bfs on a connectivity matrix of the faces. for n faces, we'll store it as an nxn matrix
                 //a 0 in spot (i,j) means faces i and j are not connected

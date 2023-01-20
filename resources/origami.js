@@ -2,23 +2,21 @@
 
 Vertex: 
 - x and y coordinates on cp
-- x and y coordinates on folded model
-- list of crease objects connected to it
+- xf and yf coordinates on folded model
+- list of crease objects connected to it, sorted by angle
+- list of angles that the creases make, sorted
 - boolean: locally flat foldable (by angles)
-
-- add a new crease
 
 Crease: 
 - list of two vertices
 - list of two faces
-- MVA
+- MVEA (mountain, valley, edge or auxiliary (unassigned mv))
 
 Face:
 - list of creases
 - list of vertices
 - list of neighboring faces
-- boolean: flipped?
-- boolean: assigned? 
+- boolean: assigned? (is there a path of mv creases back to starting face) 
 - list of subfaces
 
 Subface:
@@ -27,23 +25,23 @@ Subface:
 - list of neighboring subfaces (within face, and across creases)
 
 Stack:
+- list of points (like vertex, but just for stacks)
+- list of lines  (like crease, but just for stacks)
 - list of neighboring stacks
-- list of subface objects, in order
+- list of subface objects (in order when solved)
 
 CreasePattern: 
-- list of vertex objects
-- list of crease objects
-
-- list of face objects
+- list of vertices
+- list of creases
+- list of faces
 - list of stacks
+- connectivity matrix between faces
+- connectivity matrix between stacks
 
 - boolean: locally flat foldable (x ray possible?)
 - boolean: globally flat foldable (no self intersection)
 
-- display cp
-- display x ray
-- display layered model
-- export as .cp
+- functions for finding faces, stacks, x ray, layer ordering, etc are stored as methods
 */
 
 class Vertex {
@@ -120,6 +118,35 @@ class Face {
         this.creases = creases;
         this.vertices = vertices;
         this.neighbors = [];
+        this.subfaces = []
+        this.assigned = false
+    }
+}
+
+class Stack{
+    constructor(){
+        this.subfaces = []
+        this.points = []
+        this.lines = []
+        this.neighbors = [] //neighboring stacks in the folded state
+    }
+}
+class Stackpoint{
+    constructor(x,y){
+        this.xf = x;
+        this.yf = y; //there is no cp coord
+    }
+}
+class Stackline{
+    constructor(v1,v2){
+        this.vertices = [v1,v2]
+    }
+}
+class Subface{
+    constructor(face,stack){
+        this.face = face
+        this.stack = stack
+        this.neighbors = [] //neighbors on the cp, not folded state
     }
 }
 class CP {
@@ -137,6 +164,7 @@ class CP {
         //Create face objects based on the creases
         this.faces = []
         for(i=0;i<this.creases.length;i++){
+            //if(i%10==0){console.log(i)}
             if(this.creases[i].mv== 'E'){continue}
             //Find the two faces on either side of the crease
             //Keep turning right until you come back to this crease. See if this face is already found or not.
@@ -227,8 +255,6 @@ class CP {
         spread(startingFace)
     
         for(const face of this.faces){
-            console.log("placing",face)
-
             var stepsAway = face.distance;
             const index = this.faces.indexOf(face)
             for(const vertex of face.vertices){
@@ -237,10 +263,7 @@ class CP {
             var currentFace = face
             while(stepsAway>0){
                 //
-                console.log("step",stepsAway)
                 var neighbor = currentFace.neighbors.find(element=>element.distance ==stepsAway-1)
-                console.log("neighbors",currentFace.neighbors)
-                console.log(neighbor)
                 var reflector = currentFace.creases.find(element=>neighbor.creases.includes(element))//this.matrix[index][this.faces.indexOf(neighbor)]
                 reflectFace(face,reflector)
                 stepsAway = neighbor.distance
@@ -251,6 +274,61 @@ class CP {
 
         //for each face, find the path to the starting face. reset xf = x before doing anything
         //keep reflecting along the path, updating xf until you get get to the starting face
+    }
+    findStacks(){
+        //[IMPORTANT] only proceed with faces who have connected paths to the starting face.
+
+
+        //Start with each face as a stack. Go through the stacks, merging/splitting until no stacks overlap.
+        //Then make the subfaces. For each face, see which stacks it overlaps.
+        this.stacks = []
+        for(face of this.faces){
+            //create a stack based on this face. use special stack objects
+            var stack = new Stack()
+            for(crease of face.creases){
+                p1 = new Stackpoint(crease.vertices[0].xf,crease.vertices[0].yf)
+                p2 = new Stackpoint(crease.vertices[1].xf,crease.vertices[1].yf)
+                stack.lines.push(new Stackline(p1,p2))
+                for(point of stack.points){
+                    if(point.xf==p1.xf && point.yf == p1.yf){p1 = null}
+                    else if(point.xf==p2.xf && point.yf == p2.yf){p2 = null}
+                }
+                if(p1!=null){stack.points.push(p1)}
+                if(p2!=null){stack.points.push(p2)}
+            }
+            this.stacks.push(stack)
+        }
+        for(i=0;i<this.stacks.length;i++){
+            //for each stack, iterate through the remaining stacks to see if there are any overlaps. 
+            //once the stack has no overlaps, move on, and nobody bother with it bc it doesn't overlap anyone
+            //if there was an overlap, the current stack becomes the union. and the not overlapped parts are pushed to the end of the list of stacks
+            for(j=i+1;j<this.stacks.length;j++){
+                //compare stacks[i] and stacks[j]
+                //current stack becomes the union. stack[j] gets deleted. the rest gets pushed to the end
+            }
+        }
+
+        for(face of this.faces){
+            for(stack of this.stacks){
+                //if they overlap (all stack vertices are in or on the face)
+                //make a new subface based on the stackpoints of the stack. add to stack and add to face
+            }
+        }
+
+        //go through stacks and find neighbors
+        //go through subfaces and figure out which other subfaces in its stack it's connected to by crease. neighbors must be in stack
+    }
+    testFoldability(){
+        //arrange the stacks
+        //by now, we have all our faces, stacks, subfaces, and face matrix and stacks matrix, and subface relations.
+        
+        //just need to find one arrangement.
+        //[random note] a subface is flipped if it's face's distance is odd
+        //start from the top of each stack and move down. if subface j needs to be above subface i, move i right below j. continue until stack has been fixed
+        //now look for tortilla tortilla: if neighboring stacks 2 and 3 both have subfaces from a and b, and a>b in one and b<a in the other,
+            //check if it's possible to move without violating inequalities.
+        //check for taco taco and taco tortilla 
+        //oof this is tough
     }
     displayCp(x1,y1,x2,y2){ //so you can position where to draw it
         function convertx(cp){
@@ -414,10 +492,19 @@ function readCpFile(file){
     return new CP(vertices,creases)
 }
 
-function downloadCpFile(CP){
+function exportCpFile(CP){
     console.log("stay tuned")
 }
 
+//==================================================================
+//auxiliary functions
+//==================================================================
+
+function eq(a,b){
+    if(Math.abs(a-b)>10**(-8)){return false} else {return true}
+}
+
+//face finding
 function reflectPoint(v1,v2,v3){
     var v = [v3.x-v2.x , v3.y-v2.y]
     var u = [v1.xf-v2.x , v1.yf-v2.y]
@@ -433,13 +520,6 @@ function reflectFace(moving,reflector){
         [vertex.xf,vertex.yf] = reflectPoint(vertex,reflector.vertices[0],reflector.vertices[1])
     }
 }
-
-
-
-
-function eq(a,b){
-    if(Math.abs(a-b)>10**(-12)){return false} else {return true}
-}
 function areFacesEqual(face,group){
     for(l=0;l<face.length;l++){
         if(!group.includes(face[l])){return false}
@@ -448,4 +528,27 @@ function areFacesEqual(face,group){
         if(!face.includes(group[l])){return false}
     }
     return true
+}
+
+//subface finding
+//remember that although faces are convex, stacks might not be
+//https://www.swtestacademy.com/intersection-convex-polygons-algorithm/
+function isPointInPolygon(point,stack){
+
+}
+function linesIntersection(v1,v2,v3,v4){
+    //for each line of one polygon, test to each line of the other polygon
+    const [x1,y1] = [v1.xf,v1.yf]   
+    const [x2,y2] = [v2.xf,v2.yf]
+    const [x3,y3] = [v3.xf,v3.yf]
+    const [x4,y4] = [v4.xf,v4.yf] 
+
+    const [a1,b1, a2, b2] = [y2-y1,x2-x1 , y4-y3,x4-x3]
+    const [c1,c2] = [a1*x1 + b1*y1 , a2*x3 + b2*y3]
+    const det = a1*b2 - a2*b1
+    if(det == 0){return null} //lines are parallel
+
+    const x = (b2*c1 - b1*c2)/det
+    const y = (a2*c1 - a1*c2)/det
+    return [x,y]
 }
