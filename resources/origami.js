@@ -119,6 +119,7 @@ class Face {
     constructor(creases,vertices){
         this.creases = creases;
         this.vertices = vertices;
+        this.neighbors = [];
     }
 }
 class CP {
@@ -194,8 +195,13 @@ class CP {
             if(this.creases[i].mv == 'M'){value = 1}
             else if(this.creases[i].mv == 'V'){value = -1}
             else if(this.creases[i].mv == 'A'){value = 0} else{continue} //i think? shouldn' be any edges here
-            this.matrix[this.faces.indexOf(this.creases[i].faces[1])][this.faces.indexOf(this.creases[i].faces[0])] = value
-            this.matrix[this.faces.indexOf(this.creases[i].faces[0])][this.faces.indexOf(this.creases[i].faces[1])] = value
+            //was gonna use this--but since we can, let's just put the crease object instead
+
+            this.matrix[this.faces.indexOf(this.creases[i].faces[1])][this.faces.indexOf(this.creases[i].faces[0])] = this.creases[i]
+            this.matrix[this.faces.indexOf(this.creases[i].faces[0])][this.faces.indexOf(this.creases[i].faces[1])] = this.creases[i]
+
+            this.creases[i].faces[1].neighbors.push(this.creases[i].faces[0])
+            this.creases[i].faces[0].neighbors.push(this.creases[i].faces[1])
         }
 
         return this.faces
@@ -204,13 +210,45 @@ class CP {
         //assign folded coordinates to vertices
         var startingFace = this.faces[0] //this is arbitrarily chosen
         const n = this.faces.length
-        for(i=0;i<1;i++){
-            for(j=i;j<n;j++){
-                if(this.matrix[i][j]!=null){
-                    1+1
+        //bfs throughout the graph to give every face a distance from the starting face
+        startingFace.distance = 0;
+        function spread(face){
+            for(const neighbor of face.neighbors){
+                if(neighbor.distance > face.distance || neighbor.distance == undefined){
+                    neighbor.distance = face.distance + 1
+                }
+            }
+            for(const neighbor of face.neighbors){
+                if(neighbor.distance == face.distance+1){
+                    spread(neighbor)
                 }
             }
         }
+        spread(startingFace)
+    /*
+        for(const face of this.faces){
+            console.log("placing",face)
+
+            var stepsAway = face.distance;
+            const index = this.faces.indexOf(face)
+            for(const vertex of face.vertices){
+                [vertex.xf,vertex.yf] = [vertex.x,vertex.y]
+            }
+            while(stepsAway>0){
+                //
+                console.log("step",stepsAway)
+                var neighbor = face.neighbors.find(element=>element.distance <=stepsAway)
+                console.log("neighbors",face.neighbors)
+                console.log(neighbor)
+                var reflector = face.creases.find(element=>neighbor.creases.includes(element))//this.matrix[index][this.faces.indexOf(neighbor)]
+                reflectFace(face,reflector)
+                stepsAway = neighbor.distance
+            }
+        }
+        */
+
+        //for each face, find the path to the starting face. reset xf = x before doing anything
+        //keep reflecting along the path, updating xf until you get get to the starting face
     }
     displayCp(x1,y1,x2,y2){ //so you can position where to draw it
         function convertx(cp){
@@ -269,7 +307,20 @@ class CP {
             face.opacity = 0.1
             face.fillColor = 'black'
             face.strokeWidth = (x2-x1)/200;
+
+            var centerx = 0
+            var centery = 0
+            for(const vertex of this.faces[i].vertices){centerx += vertex.x; centery += vertex.y}
+            centerx = centerx/this.faces[i].vertices.length
+            centery = centery/this.faces[i].vertices.length
+            var center = new paper.Point(
+                convertx(centerx),
+                converty(centery))
+            var text = new paper.PointText(center)
+            text.content = this.faces[i].distance
         }
+        var bruh = new paper.PointText(new paper.Point(200,200))
+        bruh.content = 'bruh'
     }
 }
 
@@ -358,25 +409,21 @@ function downloadCpFile(CP){
     console.log("stay tuned")
 }
 
-function reflect(v1,v2,v3){
-    //v1 is the point being reflected, and v2 and v3 define the reflection line
-    // https://stackoverflow.com/questions/3306838/algorithm-for-reflecting-a-point-across-a-line
-    x1 = v1.x
-    y1 = v1.y
-    x2 = v2.x
-    y2 = v2.y
-    x3 = v3.x
-    y3 = v3.y
-    const m = (y3-y2)/(x3-x2)
-    const c = (x3*y2-x2*y3)/(x3-x2)
-    const d = (x1 + (y1 - c)*m)/(1 + m^2)
-
-    const x4 = 2*d - x1
-    const y4 = 2*d*m - y1 + 2*c
-    return [x4,y4]
+function reflectPoint(v1,v2,v3){
+    var v = [v3.x-v2.x , v3.y-v2.y]
+    var u = [v1.xf-v2.x , v1.yf-v2.y]
+    var p = [v2.x+v[0]*(u[1]*v[1] + u[0]*v[0])/(v[1]**2+v[0]**2), v2.y+v[1]*(u[1]*v[1] + u[0]*v[0])/(v[1]**2+v[0]**2)]
+    var v4 = [v1.xf+2*(p[0]-v1.xf) , v1.yf+2*(p[1]-v1.yf)]
+    return v4
 }
-
-
+function reflectFace(moving,reflector){
+    //fixed: face that isn't moving
+    //moving: face that is moving
+    //reflector: the crease between the two faces
+    for(const vertex of moving.vertices){
+        [vertex.xf,vertex.yf] = reflectPoint(vertex,reflector.vertices[0],reflector.vertices[1])
+    }
+}
 
 
 
