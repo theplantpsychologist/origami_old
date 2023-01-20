@@ -124,10 +124,10 @@ class Face {
 }
 
 class Stack{
-    constructor(){
+    constructor(lines,points){
         this.subfaces = []
-        this.points = []
-        this.lines = []
+        this.points = points
+        this.lines = lines
         this.neighbors = [] //neighboring stacks in the folded state
     }
 }
@@ -135,12 +135,27 @@ class Stackpoint{
     constructor(x,y){
         this.xf = x;
         this.yf = y; //there is no cp coord
+        this.lines = []
+        this.angles = []
     }
     //will also have to sort by angle
+    sortAngles(){
+        this.angles = []
+        for(const line of this.lines){
+            this.angles.push(
+                Math.atan2(line.points[0].yf - this.yf, line.points[0].xf - this.xf)+
+                Math.atan2(line.points[1].yf - this.yf, line.points[1].xf - this.xf) 
+                //one of thee crease's vertices will be this vertex, so the atan2 will return 0
+            ) 
+        }
+        this.lines.sort((a,b)=>this.angles[this.lines.indexOf(a)]-this.angles[this.lines.indexOf(b)]) //sort lines based on angle
+        this.angles.sort((a,b)=>a-b)
+    }
 }
 class Stackline{
     constructor(v1,v2){
-        this.vertices = [v1,v2]
+        this.points = [v1,v2]
+        this.stacks = []
     }
 }
 class Subface{
@@ -245,8 +260,7 @@ class CP {
             }
         }
         split(this.stackedges,this.stackpoints) //this function will split things but will replace them with crease and vertex objects
-        [this.stacks,this.stackmatrix] = findFaces(this.stackedges) //note: this will output face objects, not stack objects.
-        //may want to either rewrite that function, add the distinction as an input, or just convert after
+        [this.stacks,this.stackmatrix] = findStacks(this.stackedges) 
 
 
         //now create subfaces. iterate through the stacks and see if it's a subface of the face
@@ -617,11 +631,84 @@ function findFaces(creases){
         if(crease.faces.length !=2){continue}
         var value
         
-        matrix[faces.indexOf(crease.faces[1])][faces.indexOf(crease.faces[0])] = creases[i]
-        matrix[faces.indexOf(crease.faces[0])][faces.indexOf(crease.faces[1])] = creases[i]
+        matrix[faces.indexOf(crease.faces[1])][faces.indexOf(crease.faces[0])] = crease
+        matrix[faces.indexOf(crease.faces[0])][faces.indexOf(crease.faces[1])] = crease
 
         crease.faces[1].neighbors.push(crease.faces[0])
         crease.faces[0].neighbors.push(crease.faces[1])
+    }
+
+    return [faces,matrix]
+}
+
+function findStacks(lines){
+    //generic algorithm for finding faces of a graph.
+    //used for face finding on cp, and stack finding
+    //"line" just means an edge of a graph. contains two vertices, which contain creases in angular order
+
+    //faces by default run clockwise. discard counter clockwise faces.
+    var stacks = []
+    for(const line of lines){
+        //if(i%10==0){console.log(i)}
+        //if(crease.mv== 'E'){continue}
+        //Find the two faces on either side of the crease
+        //Keep turning right until you come back to this crease. See if this face is already found or not.
+        //Do this for both directions.
+        for(const endPoint of line.points){
+            var creaseGroup = []
+            var vertexGroup = []; 
+            var currentCrease;
+            var currentVertex;
+            var nextCrease;
+
+            currentCrease = crease;
+            currentVertex = endPoint;
+            while(nextCrease!=crease){
+                nextCrease = currentVertex.lines[currentVertex.lines.indexOf(currentCrease) + 1]
+                if(nextCrease == undefined){nextCrease = currentVertex.lines[0]}//loop around if you were at the end of the list
+                creaseGroup.push(nextCrease)
+                vertexGroup.push(currentVertex)
+                currentCrease = nextCrease
+                if(currentCrease.points[0]==currentVertex){currentVertex = currentCrease.points[1]} else {currentVertex = currentCrease.points[0]}
+                if(line.points.includes(currentVertex)){
+                    creaseGroup.push(line);
+                    vertexGroup.push(currentVertex);
+                    break
+                }
+            }
+            if(creaseGroup.length<3){continue}
+            if(!isFaceClockwise(vertexGroup)){continue}
+            var isNew = true;
+            
+            for(const stack of stacks){
+                if(haveSameContents(stack.points,vertexGroup)){
+                    line.stacks.push(stack)
+                    var isNew = false;
+                }
+            }
+            if(isNew){
+                var newStack = new Stack(creaseGroup,vertexGroup)
+                stacks.push(newStack);
+                line.stacks.push(newStack);
+            }
+        }
+    }
+
+    //now we make the connectivity matrix
+    const n = stacks.length
+    matrix = []
+    for(i=0;i<n;i++){
+        matrix.push(Array.apply(null, Array(n))) //make an empty nxn matrix
+    }
+    for(const line of lines){
+        if(line.stacks.length !=2){continue}
+        var value
+        
+        matrix[stacks.indexOf(line.stacks[1])][stacks.indexOf(line.stacks[0])] = line
+        matrix[stacks.indexOf(line.stacks[0])][stacks.indexOf(line.stacks[1])] = line
+
+        line.stacks[1].neighbors.push(line.stacks[0])
+        line.stacks[0].neighbors.push(line.stacks[1])
     }
 
     return [faces,matrix]
