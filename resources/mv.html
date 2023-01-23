@@ -79,7 +79,8 @@
                 [inputcp.faces,inputcp.matrix] = findFaces(inputcp.creases)
                 inputcp.foldXray();
                 inputcp.displayXray(200,640,380);
-                inputcp.findStacks2();
+                //inputcp.findStacks1();
+                
                 //dfs will run a dfs of a binary tree made of PotentialCP until one solution is found
                 //it's also running a bfs on a connectivity matrix of the faces. for n faces, we'll store it as an nxn matrix
                 //a 0 in spot (i,j) means faces i and j are not connected
