@@ -1,3 +1,3 @@
-personal website
+Personal website with origami portfolio and origami-related web apps I've made.
 
-hosted here: https://web.mit.edu/wongb/www/origami/index.html
+Hosted here: https://web.mit.edu/wongb/www/origami/index.html
