@@ -200,7 +200,6 @@ class CP {
             }
         }
         spread(startingFace)
-    
         for(const face of this.faces){
             var stepsAway = face.distance;
             const index = this.faces.indexOf(face)
