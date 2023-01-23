@@ -24,6 +24,9 @@
         <div>
             <noscript>Please enable javascript to use this app.</noscript>
             <p id="import">Upload a .cp file below. Use auxilary lines to indicate creases of unknown MV.</p>
+            <p>I'm actively working on this project at the moment, so although it doesn't work yet, if you come back in a few days it will 
+                likely have improved significantly.
+            </p>
             <div>
                 <input type="file" id="inputfile" name="inputfile" />
                 <pre id="output"></pre>
@@ -80,7 +83,7 @@
                 inputcp.foldXray();
                 inputcp.displayXray(200,640,380);
                 //inputcp.findStacks1();
-                
+
                 //dfs will run a dfs of a binary tree made of PotentialCP until one solution is found
                 //it's also running a bfs on a connectivity matrix of the faces. for n faces, we'll store it as an nxn matrix
                 //a 0 in spot (i,j) means faces i and j are not connected
