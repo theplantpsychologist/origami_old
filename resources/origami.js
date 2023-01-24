@@ -171,8 +171,8 @@ class Face {
 class Stack{
     constructor(lines,points){
         this.subfaces = []
-        this.points = points
-        this.lines = lines
+        this.stackpoints = points
+        this.stacklines = lines
         this.neighbors = [] //neighboring stacks in the folded state
     }
 }
@@ -220,10 +220,13 @@ class CP {
                 this.angularFoldable = false;
             }
         }
+        this.stacks = []
+        this.stackmatrix = []
     }
     
     foldXray(){
         //assign folded coordinates to vertices
+        [this.faces,this.matrix] = findFaces(this.creases)
         var startingFace = this.faces[0] //this is arbitrarily chosen
         const n = this.faces.length
         //bfs throughout the graph to give every face a distance from the starting face
@@ -245,11 +248,13 @@ class CP {
             }
         }
         spread(startingFace)
+
+        //now for each face, calculate folded coords by reflecting along the path to starting face
         for(const face of this.faces){
             var stepsAway = face.distance;
             const index = this.faces.indexOf(face)
             for(const vertex of face.vertices){
-                [vertex.xf,vertex.yf] = [vertex.x,vertex.y]
+                [vertex.xf,vertex.yf] = [vertex.x,vertex.y] //reset to unfolded position
             }
             var currentFace = face
             while(stepsAway>0){
@@ -258,7 +263,7 @@ class CP {
                 var reflector = currentFace.creases.find(element=>neighbor.creases.includes(element))//this.matrix[index][this.faces.indexOf(neighbor)]
                 reflectFace(face,reflector)
                 stepsAway = neighbor.distance
-                currentFace = neighbor
+                currentFace = neighbor //in the next loop we'll reflect across the next face in the chain, but it's the original face that gets moved
             }
         }
         
@@ -273,38 +278,86 @@ class CP {
         //combine folded faces onto each other to create a new graph, the xray map
         //run an alg similar to face finding but now on the xray map
         this.stackpoints = []
-        this.stackedges = []
-        for(const face of assignedFaces){
+        this.stacklines = []
+        for(const face of this.assignedFaces){
+            //transfer vertices
             for(const vertex of face.vertices){
                 //create a stackpoint where vertex was
                 var newpoint = new Stackpoint(vertex.xf,vertex.yf)
                 var duplicate = false
                 for(const oldpoint of this.stackpoints){
-                    if(oldpoint.xf == newpoint.xf && oldpoint.yf == newpoint.yf){duplicate = true; break}
+                    if(eq(oldpoint.xf,newpoint.xf) && eq(oldpoint.yf,newpoint.yf)){duplicate = true; break}
                 }
                 if(duplicate){continue}
                 this.stackpoints.push(newpoint)
             }
+            //transfer creases
             for(const crease of face.creases){
-                //create a stack edge where the crease was
+                //create a stack line where the crease was
+                //see if we can reuse existing stackpoints
                 var p1 = null
                 var p2 = null
                 for(const oldpoint of this.stackpoints){
-                    if(oldpoint.xf == crease.vertices[0].xf && oldpoint.yf == crease.vertices[0].yf){p1 = oldpoint; continue}
-                    if(oldpoint.xf == crease.vertices[1].xf && oldpoint.yf == crease.vertices[1].yf){p2 = oldpoint; continue}
+                    if(eq(oldpoint.xf,crease.vertices[0].xf) && eq(oldpoint.yf,crease.vertices[0].yf)){p1 = oldpoint; continue}
+                    if(eq(oldpoint.xf,crease.vertices[1].xf) && eq(oldpoint.yf,crease.vertices[1].yf)){p2 = oldpoint; continue}
                 }
                 if(p1==null){p1 = new Stackpoint(crease.vertices[0].xf,crease.vertices[0].yf)}
                 if(p2==null){p2 = new Stackpoint(crease.vertices[1].xf,crease.vertices[1].yf)}
+                
+                var newLine = new Stackline(p1,p2)
                 var duplicate = false
-                for(const oldline of this.stackedges){
-                    if(haveSameContents(oldline.vertices,[p1,p2])){duplicate = true}
+                for(const oldLine of this.stacklines){
+                    if(oldLine==null){continue}
+                    var commonIndices = haveCommonElement(oldLine.points,newLine.points)
+                    if(!commonIndices){continue}
+                    //if they have two vertices in common, just don't even bother with newline
+                    if(commonIndices.length==2){duplicate = true; break}
+                    //if they have only one vertex in common and are colinear (same atan2)
+                    if(commonIndices.length==1){
+                        var p = oldLine.points[commonIndices[0][0]] //the point in common
+                        var a = oldLine.points[commonIndices[0][0]==0?1:0] //oldline's other point
+                        var b = newLine.points[commonIndices[0][1]==0?1:0] //newline's other point
+                        if(eq(Math.atan2(b.yf-p.yf,b.xf-p.xf),Math.atan2(a.yf-p.yf,a.xf-p.xf))){
+                            //then instead of having lines pa and pb, have pa and ab (if a is closer). otherwise have pb and ba
+                            p.lines.splice(p.lines.indexOf(oldLine),1)
+                            a.lines.splice(a.lines.indexOf(oldLine),1)
+                            delete(this.stacklines[this.stacklines.indexOf(oldLine)])
+
+                            var closerpoint = Math.abs(a.xf-p.xf) < Math.abs(b.xf-p.xf) ? a:b
+                            var furtherpoint = (a==closerpoint?b:a)
+                            var newLine1 = new Stackline(p,closerpoint)
+                            var newLine2 = new Stackline(closerpoint,furtherpoint)
+                            this.stacklines.push(newLine1,newLine2)
+                            p.lines.push(newLine1)
+                            closerpoint.lines.push(newLine1,newLine2)
+                            furtherpoint.lines.push(newLine2)
+                            duplicate = true; break
+                        }
+                    }
                 }
-                if(duplicate){continue}
-                this.stackedges.push(new Stackline(p1,p2))
+                if(!duplicate){
+                    this.stacklines.push(newLine)
+                    p1.lines.push(newLine)
+                    p2.lines.push(newLine)
+                }
             }
         }
-        split(this.stackedges,this.stackpoints) //this function will split things but will replace them with crease and vertex objects
-        [this.stacks,this.stackmatrix] = findStacks(this.stackedges) 
+        this.stacklines = this.stacklines.filter(Boolean) //remove the deleted empty ones
+        //check again for direct duplicates
+        for(i=0;i<this.stacklines.length-1;i++){
+            if(this.stacklines[i] == null){continue}
+            for(j=i+1;j<this.stacklines.length;j++){
+                if(this.stacklines[j] == null){continue}
+                if(haveSameContents(this.stacklines[i].points,this.stacklines[j].points)){
+                    this.stacklines[j].points[0].lines.splice(this.stacklines[j].points[0].lines.indexOf(this.stacklines[j]),1)
+                    this.stacklines[j].points[1].lines.splice(this.stacklines[j].points[1].lines.indexOf(this.stacklines[j]),1)
+                    delete(this.stacklines[j])
+                }
+            }
+        }
+        this.stacklines = this.stacklines.filter(Boolean)
+        console.log(findStacks(this.stacklines))
+        [this.stacks,this.stackmatrix] = findStacks(this.stacklines) 
 
 
         //now create subfaces. iterate through the stacks and see if it's a subface of the face
@@ -403,6 +456,53 @@ class CP {
         }
     }
     displayXray(xc,yc,scale){
+        var totalCenterx = 0
+        var totalCentery = 0
+        for(const vertex of this.vertices){totalCenterx += vertex.xf; totalCentery += vertex.yf}
+        totalCenterx = totalCenterx/this.vertices.length
+        totalCentery = totalCentery/this.vertices.length
+
+        totalCenterx = 0.5
+        totalCentery = 0.5
+
+
+        function convertx(cp){
+            //Converting cp coords, which range from 0,1, into js coords centered at xc,yc
+            //return x1+cp*(x2-x1);
+            return (cp-totalCenterx)*scale+xc
+        }
+        function converty(cp){
+            //also the y coordinates are displayed upside down
+            //return y1-cp*(y1-y2);
+            return(cp-totalCentery)*scale+yc
+        }
+        var xray = new paper.Group();
+        for(i=0;i<this.faces.length;i++){
+            var face = new paper.Path();
+            for(j=0;j<this.faces[i].vertices.length;j++){
+                face.add(new paper.Point(convertx(this.faces[i].vertices[j].xf),converty(this.faces[i].vertices[j].yf)))
+            }
+            face.closed = true;
+            face.strokeColor = 'black'
+            face.opacity = 0.1
+            face.fillColor = 'black'
+            face.strokeWidth = (scale)/200;
+            //for displaying distance from center
+            /*
+            var centerx = 0
+            var centery = 0
+            for(const vertex of this.faces[i].vertices){centerx += vertex.x; centery += vertex.y}
+            centerx = centerx/this.faces[i].vertices.length
+            centery = centery/this.faces[i].vertices.length
+            var center = new paper.Point(
+                convertx(centerx),
+                converty(centery))
+            var text = new paper.PointText(center)
+            text.content = this.faces[i].distance
+            */
+        }
+    }
+    displayStacks(xc,yc,scale){
         var centerx = 0
         var centery = 0
         for(const vertex of this.vertices){centerx += vertex.xf; centery += vertex.yf}
@@ -420,28 +520,16 @@ class CP {
             return(cp-centery)*scale+yc
         }
         var xray = new paper.Group();
-        for(i=0;i<this.faces.length;i++){
-            var face = new paper.Path();
-            for(j=0;j<this.faces[i].vertices.length;j++){
-                face.add(new paper.Point(convertx(this.faces[i].vertices[j].xf),converty(this.faces[i].vertices[j].yf)))
+        for(const stack of this.stacks){
+            var displaystack = new paper.Path();
+            for(const point of stack.stackpoints){
+                stack.add(new paper.Point(convertx(point.xf),converty(point.yf)))
             }
-            face.closed = true;
-            face.strokeColor = 'black'
-            face.opacity = 0.1
-            face.fillColor = 'black'
-            face.strokeWidth = (scale)/200;
-            /* for displaying distance from center
-            var centerx = 0
-            var centery = 0
-            for(const vertex of this.faces[i].vertices){centerx += vertex.x; centery += vertex.y}
-            centerx = centerx/this.faces[i].vertices.length
-            centery = centery/this.faces[i].vertices.length
-            var center = new paper.Point(
-                convertx(centerx),
-                converty(centery))
-            var text = new paper.PointText(center)
-            text.content = this.faces[i].distance
-            */
+            displaystack.closed = true;
+            displaystack.strokeColor = 'black'
+            displaystack.opacity = 0.1
+            displaystack.fillColor = 'black'
+            displaystack.strokeWidth = (scale)/200;
         }
     }
 }
@@ -547,7 +635,10 @@ function exportCpFile(CP){
 //==================================================================
 
 function eq(a,b){
-    if(Math.abs(a-b)>10**(-8)){return false} else {return true}
+    if(Math.abs(a-b)>10**(-7)){return false} else {return true}
+}
+function dot(v1,v2){
+    return v1[0]*v2[0] + v1[1]*v2[1]
 }
 
 function split(creases,vertices){
@@ -555,20 +646,48 @@ function split(creases,vertices){
     /*need to fix things like:
         - two creases cross,crossed vertex isn't represented
         - crease starts/ends on another crease
-     coincident creases and vertices should be taken care of when graph is created
+     coincident creases and vertices should be taken care of when graph is created by checking for duplicates
     */
-    for(i = 0; i<creases.length; i++){
+    for(i = 0; i<creases.length-1; i++){
         for(j=i+1;j<creases.length;j++){
             //if([creases[1].vertices])
-            var intersection = linesIntersection(creases[i],creases[j])
-
+            var intersection = linesIntersection(...creases[i].vertices,...creases[j].vertices)
+            if(intersection){
+                p = new Vertex(...intersection)
+                vertices.push(p)
+                //if p is coincident with an endpoint, delete the endpoint and set p as the new endpoint
+                //if p is not coincident with an endpoint, delete crease and replace with 2
+                for(const crease of [creases[i],creases[j]]){
+                    if(intersection.x == crease.vertices[0].x & intersection.y == crease.vertices[0].y){
+                        delete(vertices[vertices.indexOf(crease.vertices[0])]) // delete, not splice, so the indices don't change
+                        crease.vertices.splice(0,1) //splice bc the order doesn't matter
+                        crease.vertices.push(p)
+                        continue
+                    }
+                    else if(intersection.x == crease.vertices[1].x & intersection.y == crease.vertices[1].y){
+                        delete(vertices[vertices.indexOf(crease.vertices[1])]) // delete, not splice, so the indices don't change
+                        crease.vertices.splice(1,1) //splice bc the order doesn't matter
+                        crease.vertices.push(p)
+                        continue
+                    }
+                    else{
+                        v1 = crease.vertices[0]
+                        v2 = crease.vertices[1]
+                        v1.creases.splice(v1.creases.indexOf(crease),1)
+                        v2.creases.splice(v2.creases.indexOf(crease),1) //the creases have not been ordered yet
+                        delete(creases[creases.indexOf(crease)]) //this is important because we are iterating through the creases
+                        newCrease1 = new Crease(v1,p)
+                        newCrease2 = new Crease(p,v2)
+                        creases.push(newCrease1,newCrease2)
+                        v1.creases.push(newCrease1)
+                        v2.creases.push(newCrease2)
+                    }
+                }
+            }
         }
     }
-    for(i=0;i<vertices.length;i++){
-
-    }
-
-
+    creases.filter(Boolean) //remove the null elements
+    vertices.filter(Boolean)
     return[creases,vertices]
     //when this is done, fix the read cp function
 }
@@ -582,7 +701,6 @@ function reflectPoint(v1,v2,v3){
     return v4
 }
 function reflectFace(moving,reflector){
-    //fixed: face that isn't moving
     //moving: face that is moving
     //reflector: the crease between the two faces
     for(const vertex of moving.vertices){
@@ -597,6 +715,13 @@ function haveSameContents(arr1,arr2){
         if(!arr1.includes(item)){return false}
     }
     return true
+}
+function haveCommonElement(arr1,arr2){
+    //returns a list of ordered pairs, where the first in the pair is the index of first array and second is index of second array
+    var indices = []
+    arr1.forEach((element,index) => arr2.includes(element)?indices.push([index,arr2.indexOf(element)]):null)
+    if(indices.length==0){return null}
+    return indices
 }
 function isFaceClockwise(vertices){
     //https://stackoverflow.com/questions/1165647/how-to-determine-if-a-list-of-polygon-points-are-in-clockwise-order
@@ -671,12 +796,12 @@ function findFaces(creases){
     for(i=0;i<n;i++){
         matrix.push(Array.apply(null, Array(n))) //make an empty nxn matrix
     }
+    
     for(crease of creases){
         if(crease.faces.length !=2){continue}
-        var value
         
-        matrix[faces.indexOf(crease.faces[1])][faces.indexOf(crease.faces[0])] = crease
         matrix[faces.indexOf(crease.faces[0])][faces.indexOf(crease.faces[1])] = crease
+        matrix[faces.indexOf(crease.faces[1])][faces.indexOf(crease.faces[0])] = crease
 
         crease.faces[1].neighbors.push(crease.faces[0])
         crease.faces[0].neighbors.push(crease.faces[1])
@@ -685,6 +810,39 @@ function findFaces(creases){
     return [faces,matrix]
 }
 
+//stack finding
+//remember that although faces are convex, stacks might not be
+//https://www.swtestacademy.com/intersection-convex-polygons-algorithm/
+function isPointInPolygon(point,stack){
+
+}
+function linesIntersection(v1,v2,v3,v4){
+    //https://en.wikipedia.org/wiki/Line%E2%80%93line_intersection
+    const [x1,y1] = [v1.xf,v1.yf]   
+    const [x2,y2] = [v2.xf,v2.yf]
+    const [x3,y3] = [v3.xf,v3.yf]
+    const [x4,y4] = [v4.xf,v4.yf] 
+
+    const [a1,b1, a2, b2] = [y2-y1,x2-x1 , y4-y3,x4-x3]
+    const [c1,c2] = [a1*x1 + b1*y1 , a2*x3 + b2*y3]
+    const det = a1*b2 - a2*b1
+    if(det == 0){return null} //lines are parallel
+
+    //const x = (b2*c1 - b1*c2)/det
+    //const y = (a1*c2 - a2*c1)/det
+
+    const x = ((x1*y2 - y1*x2)*(b2) - (b1)*(x3*y4 - y3*x4))/det
+    const y = ((x1*y2 - y1*x2)*(a2) - (a1)*(x3*y4 - y3*x4))/det
+
+    //if the dot product of v1-p , v2-p is negative, the intersection crosses line 1. if 0, it intersects at v1 or v2
+    if(dot([x1-x,y1-y],[x2-x,y2-y]) >= 0 & dot([x3-x,y3-y],[x4-x,y4-y]) >= 0) {return null} //no intersection
+    else{return [x,y]} //the intersection lies along at least one of the lines
+}
+function isSubfaceOf(subface,face){
+    //subface: list of the smaller polygon vertices. probably a stack
+    //face: the face in question
+    //go through each of subface's vertices. see if it's in the polygon. if all are in or on, return true
+}
 function findStacks(lines){
     //generic algorithm for finding faces of a graph.
     //used for face finding on cp, and stack finding
@@ -705,9 +863,9 @@ function findStacks(lines){
             var currentVertex;
             var nextCrease;
 
-            currentCrease = crease;
+            currentCrease = line;
             currentVertex = endPoint;
-            while(nextCrease!=crease){
+            while(nextCrease!=line){
                 nextCrease = currentVertex.lines[currentVertex.lines.indexOf(currentCrease) + 1]
                 if(nextCrease == undefined){nextCrease = currentVertex.lines[0]}//loop around if you were at the end of the list
                 creaseGroup.push(nextCrease)
@@ -755,37 +913,6 @@ function findStacks(lines){
         line.stacks[0].neighbors.push(line.stacks[1])
     }
 
-    return [faces,matrix]
+    return [stacks,matrix]
 }
 
-//subface finding
-//remember that although faces are convex, stacks might not be
-//https://www.swtestacademy.com/intersection-convex-polygons-algorithm/
-function isPointInPolygon(point,stack){
-
-}
-function linesIntersection(v1,v2,v3,v4){
-    //https://en.wikipedia.org/wiki/Line%E2%80%93line_intersection
-    //for each line of one polygon, test to each line of the other polygon
-    const [x1,y1] = [v1.xf,v1.yf]   
-    const [x2,y2] = [v2.xf,v2.yf]
-    const [x3,y3] = [v3.xf,v3.yf]
-    const [x4,y4] = [v4.xf,v4.yf] 
-
-    const [a1,b1, a2, b2] = [y2-y1,x2-x1 , y4-y3,x4-x3]
-    const [c1,c2] = [a1*x1 + b1*y1 , a2*x3 + b2*y3]
-    const det = a1*b2 - a2*b1
-    if(det == 0){return null} //lines are parallel
-
-    //const x = (b2*c1 - b1*c2)/det
-    //const y = (a1*c2 - a2*c1)/det
-
-    const x = ((x1*y2 - y1*x2)*(b2) - (b1)*(x3*y4 - y3*x4))/det
-    const y = ((x1*y2 - y1*x2)*(a2) - (a1)*(x3*y4 - y3*x4))/det
-    return [x,y]
-}
-function isSubfaceOf(subface,face){
-    //subface: list of the smaller polygon vertices. probably a stack
-    //face: the face in question
-    //go through each of subface's vertices. see if it's in the polygon. if all are in or on, return true
-}
