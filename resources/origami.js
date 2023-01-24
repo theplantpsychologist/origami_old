@@ -84,25 +84,70 @@ class Vertex {
         }
         this.creases.sort((a,b)=>this.angles[this.creases.indexOf(a)]-this.angles[this.creases.indexOf(b)]) //sort creases based on angle
         this.angles.sort((a,b)=>a-b)
-        //Now add and subtract the sum of every other angle. 2nd - 1st + 4th - 3rd, etc
-        var total = this.angles.map(a => this.angles.indexOf(a)%2==0? -1*a:a).reduce((accumulator,currentvalue) => accumulator + currentvalue)
 
-        if(eq(this.x*this.y*(1-this.x)*(1-this.y),0)){this.angularFoldable=true; return true;} //if the vertex is on the edge
-        if(this.creases.length%2!=0){this.angularFoldable=false; return false;} //If there's an odd number of creases
-        if(!eq(total,Math.PI)){this.angularFoldable=false;return false} //if the sum of every other angle is not 180
-        //m-v = -+2
+        //sector i will correspond to the angle between crease i and crease i-1 (and 0 wraps around to n)
+        this.sectors = [Math.PI - Math.abs((this.angles[0]-this.angles[this.angles.length-1]))%(Math.PI)]; //the wrap around angle
+        for(i=1;i<this.angles.length; i++){this.sectors.push(this.angles[i]-this.angles[i-1])}
+
+        /*
+        There are a number of flat foldability conditions that must be met, and we have to go in order
+        big little big lemma?
+        on the paper edge?
+        big angle theorem?
+        m-v = 2? 
+        even number of creases
+        sum of every other crease
+        */
+        
+        //look for big little big violations: a local min sector angle with same mv on each side
+        for(i=0; i<this.sectors.length; i++){
+            if(this.sectors[i]<this.sectors[i!=0?i-1:this.sectors.length-1] - 10**-10 &
+                this.sectors[i]<this.sectors[i!=this.sectors.length-1?i+1:0] - 10**-10 &
+                this.creases[i].mv == (i!=0?this.creases[i-1]:this.creases[this.creases.length-1]).mv &
+                this.creases[i].mv != 'A' & this.creases[i].mv != 'E'
+            ){
+                this.angularFoldable = false; this.reason = "big little big lemma";return false
+            }
+        }
+        
+        //if the vertex is on the edge
+        if(eq(this.x*this.y*(1-this.x)*(1-this.y),0)){this.angularFoldable=true; this.reason = "on the edge"; return true;}
+        
+        //big angle theorem: of all the sector(s) with maximum angle, at least one has to have same mv on each side
+        var max = Math.max(...this.sectors) - 10**-10
+        var bigIndices = [] //all the global maxes. if any of thmem are iso, we're ok
+        var violatedBigAngle = true
+        this.sectors.forEach((item,index)=> item>=max?bigIndices.push(index):null)
+        if(bigIndices.length >1){violatedBigAngle = false}
+        if(this.creases[bigIndices[0]].mv == this.creases[(bigIndices[0]!=0?bigIndices[0]-1:this.creases.length-1)].mv |
+            this.creases[bigIndices[0]].mv == 'A' | this.creases[(bigIndices[0]!=0?bigIndices[0]-1:this.creases.length-1)].mv == 'A'
+        ){
+            violatedBigAngle = false;
+        }
+        if(violatedBigAngle){this.angularFoldable = false; this.reason = "big angle"; return false}
+        
+        //If there's an odd number of creases
+        if(this.creases.length%2!=0){this.angularFoldable=false; this.reason = "odd creases"; return false;} 
+
+        //if the sum of every other angle is not 180
+        //add and subtract the sum of every other angle. 2nd - 1st + 4th - 3rd, etc
+        var total = this.angles.map(a => this.angles.indexOf(a)%2==0? -1*a:a).reduce((accumulator,currentvalue) => accumulator + currentvalue)
+        if(!eq(total,Math.PI)){this.angularFoldable=false; this.reason = "angle sum"; return false} 
+
+        //m-v = -+2, although some might be aux
         var M = 0;
         var V = 0;
         var A = 0;
-        for(i=0;i<this.creases.length; i++){
-            if(this.creases[i].mv == 'M'){M+=1}
-            if(this.creases[i].mv == 'V'){V+=1}
-            if(this.creases[i].mv == 'A'){A+=1}
+        for(const crease of this.creases){
+            if(crease.mv == 'M'){M+=1}
+            if(crease.mv == 'V'){V+=1}
+            if(crease.mv == 'A'){A+=1}
         }
-        if(Math.max(M,V)>(this.creases.length /2 + 1)){this.angularFoldable=false;return false} //if m-v = -+2 is violated already
+        //if too many M or V that m-v = +-2 is already violated
+        if(Math.max(M,V)>(this.creases.length /2 + 1)){this.angularFoldable=false; this.reason = "too many M or V"; return false} 
+        if(M == V){this.angularFoldable=false; this.reason = "equal M and V"; return false}
 
-        //we'll leave big little big lemma for self intersection... maybe
-        else{this.angularFoldable=true;return true}
+        else{this.angularFoldable=true;this.reason = "default"; return true}
     }
 }
 class Crease {
