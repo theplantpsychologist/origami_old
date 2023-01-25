@@ -28,6 +28,8 @@
                 likely have improved significantly.
             </p>
             <div>
+                
+
                 <input type="file" id="inputfile" name="inputfile" />
                 <pre id="output"></pre>
                 <script>
@@ -46,6 +48,8 @@
                     }
                 </script>
                 <button id="upload" type=button onclick="UploadCp()">Upload</button>
+
+
             </div>
         </div>
 
@@ -77,9 +81,10 @@
                     alert("This crease pattern has local flat foldability issues. Please fix the highlighted vertices and try again.")
                     return
                 }
-                inputcp.foldXray(); //already includes face finding
+                inputcp.foldXray(); //already
                 inputcp.displayXray(200,640,380);
                 inputcp.findStacks1();
+                inputcp.displayStacks(200,640,380);
 
                 //dfs will run a dfs of a binary tree made of PotentialCP until one solution is found
                 //it's also running a bfs on a connectivity matrix of the faces. for n faces, we'll store it as an nxn matrix
