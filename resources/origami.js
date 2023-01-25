@@ -336,7 +336,6 @@ class CP {
             }
         }
         this.stacklines = this.stacklines.filter(Boolean) //remove the deleted empty ones
-        console.log("initial stacklines")
         console.log(this.stacklines)
         //now check for intersections that happen not on existing vertices
         for(const line1 of this.stacklines.slice(0,this.stacklines.length-1)){
@@ -401,7 +400,7 @@ class CP {
                 }
             }
         }
-        //check for duplicates again?
+        //check for duplicates again? the backup delete is useful apparently    
         for(i=0;i<this.stacklines.length-1;i++){
             if(this.stacklines[i] == null){continue}
             for(j=i+1;j<this.stacklines.length;j++){
@@ -410,7 +409,6 @@ class CP {
                     //this.stacklines[j].points[0].lines.splice(this.stacklines[j].points[0].lines.indexOf(this.stacklines[j]),1)
                     //this.stacklines[j].points[1].lines.splice(this.stacklines[j].points[1].lines.indexOf(this.stacklines[j]),1)
                     delete(this.stacklines[j])
-                    console.log("backup delete")
                 }
             }
         }
@@ -421,9 +419,28 @@ class CP {
             line.points[1].lines.push(line)
         }
 
+
+        //there's currently a problem in the line finding. points are ok. faces are ok
+
+
+
         this.stackpoints.forEach((element) => element.sortAngles())
-        console.log('output:',findStacks(this.stacklines))
-        //[this.stacks,this.stackmatrix] = findStacks(this.stacklines) 
+        this.stacks = findStacks(this.stacklines) 
+
+        for(const stack of this.stacks){
+            for(const line of stack.lines){
+                console.log('pushed',line)
+                line.stacks.push(stack) //kinda like the lines and points
+            }
+        }
+        //now can find matrix and neighbors and whatnot
+        for(const line of this.stacklines){
+            if(line.stacks.length !=2){continue}
+            //matrix[stacks.indexOf(line.stacks[1])][stacks.indexOf(line.stacks[0])] = line
+            //matrix[stacks.indexOf(line.stacks[0])][stacks.indexOf(line.stacks[1])] = line
+            line.stacks[1].neighbors.push(line.stacks[0])
+            line.stacks[0].neighbors.push(line.stacks[1])
+        }
 
         //now create subfaces. iterate through the stacks and see if it's a subface of the face
     }
@@ -558,15 +575,26 @@ class CP {
         }
         for(const stack of this.stacks){
             var displaystack = new paper.Path();
-            for(const point of stack.stackpoints){
-                stack.add(new paper.Point(convertx(point.xf),converty(point.yf)))
+            for(const point of stack.points){
+                displaystack.add(new paper.Point(convertx(point.xf),converty(point.yf)))
             }
             displaystack.closed = true;
             displaystack.strokeColor = 'black'
-            displaystack.opacity = 0.1
-            displaystack.fillColor = 'black'
+            displaystack.opacity = 0.3
+            displaystack.fillColor = 'blue'
             displaystack.strokeWidth = (scale)/200;
             stacks.addChild(displaystack)
+
+            var centerx = 0
+            var centery = 0
+            for(const point of stack.points){centerx += point.xf; centery += point.yf}
+            centerx = centerx/stack.points.length
+            centery = centery/stack.points.length
+            var center = new paper.Point(
+                convertx(centerx),
+                converty(centery))
+            var text = new paper.PointText(center)
+            text.content = stack.subfaces.length
         }
     }
 }
@@ -931,12 +959,11 @@ function findStacks(lines){
                     break
                 }
             }
-            if(creaseGroup.length<3){continue}
-            if(!isFaceClockwise(vertexGroup)){continue}
+            if(creaseGroup.length<3){console.log("less than 3 stack",lines.indexOf(line));continue}
+            if(!isFaceClockwise(vertexGroup)){console.log("outer stack",lines.indexOf(line));continue}
             var isNew = true;
             for(const stack of stacks){
                 if(haveSameContents(stack.points,vertexGroup)){
-                    line.stacks.push(stack)
                     var isNew = false;
                     break
                 }
@@ -944,31 +971,26 @@ function findStacks(lines){
             if(isNew){
                 var newStack = new Stack(creaseGroup,vertexGroup)
                 stacks.push(newStack);
-                line.stacks.push(newStack);
                 console.log('new stack',stacks)
             }
         }
     }
-
-    //now we make the connectivity matrix
+    //do the matrix later
+    /*
+    //matrix
     const n = stacks.length
     matrix = []
-    for(i=0;i<n;i++){
-        matrix.push(Array.apply(null, Array(n))) //make an empty nxn matrix
-    }
+    for(i=0;i<n;i++){matrix.push(Array.apply(null, Array(n)))} //make an empty nxn matrix
+    
     for(const line of lines){
         if(line.stacks.length !=2){continue}
-        var value
-        
         console.log('neighbors:',line.stacks,line.points)
-
         //matrix[stacks.indexOf(line.stacks[1])][stacks.indexOf(line.stacks[0])] = line
         //matrix[stacks.indexOf(line.stacks[0])][stacks.indexOf(line.stacks[1])] = line
-
         line.stacks[1].neighbors.push(line.stacks[0])
         line.stacks[0].neighbors.push(line.stacks[1])
     }
-
-    return [stacks,matrix]
+    */
+    return stacks
 }
 
