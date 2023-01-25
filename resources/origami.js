@@ -351,14 +351,88 @@ class CP {
                 if(haveSameContents(this.stacklines[i].points,this.stacklines[j].points)){
                     this.stacklines[j].points[0].lines.splice(this.stacklines[j].points[0].lines.indexOf(this.stacklines[j]),1)
                     this.stacklines[j].points[1].lines.splice(this.stacklines[j].points[1].lines.indexOf(this.stacklines[j]),1)
+                    console.log('deleted duplicate',this.stacklines[j])
                     delete(this.stacklines[j])
                 }
             }
         }
         this.stacklines = this.stacklines.filter(Boolean)
-        console.log(findStacks(this.stacklines))
-        [this.stacks,this.stackmatrix] = findStacks(this.stacklines) 
 
+        //now check for intersections that happen not on existing vertices
+        for(const line1 of this.stacklines.slice(0,this.stacklines.length-1)){
+            if(line1==null){continue}
+            for(const line2 of this.stacklines.slice(this.stacklines.indexOf(line1)+1,this.stacklines.length)){
+                if(line2==null){continue}
+                var intersection = linesIntersection(...line1.points,...line2.points)
+                if(intersection){
+                    console.log("intersection",this.stacklines.indexOf(line1),this.stacklines.indexOf(line2),"out of",this.stacklines.length,'at',intersection)
+                    //add the intersection as a new point, if it wasn't there already
+                    duplicate = false
+                    p = new Stackpoint(...intersection)
+                    for(const oldpoint of this.stackpoints){
+                        if(eq(oldpoint.xf,intersection[0]) && eq(oldpoint.yf,intersection[1])){duplicate = true; var p = oldpoint; break}
+                    }
+                    if(!duplicate){var p = new Stackpoint(...intersection);this.stackpoints.push(p);console.log("found new point")}
+
+                    //if p is coincident with an endpoint (T junction), delete the endpoint and set p as the new endpoint
+                    //if p is not coincident with an endpoint, delete crease and replace with 2
+                    for(const line of [line1,line2]){
+                        //if the intersection was on point 1
+                        /*
+                        if(p.x == line.points[0].xf & p.y == line.points[0].yf & line.points[0]!=p){
+                            //replace the old one, use p instead
+                            delete(this.stackpoints[this.stackpoints.indexOf(line.points[0])]) // delete, not splice, so the indices don't change
+                            line.points.splice(0,1) //splice bc the order doesn't matter
+                            line.points.push(p)
+                            console.log("fixed t junction at",p)
+                            continue
+                        }
+                        //if the intersection was on point 2
+                        else if(p.x == line.points[1].xf & p.y == line.points[1].yf & line.points[1]!=p){
+                            delete(this.stackpoints[this.stackpoints.indexOf(line.points[1])]) // delete, not splice, so the indices don't change
+                            line.points.splice(1,1) //splice bc the order doesn't matter
+                            line.points.push(p)
+                            console.log("fixed t junction at",p)
+                            continue
+                        }
+                        */
+                        if(dot([line.points[0].xf-p.xf,line.points[0].yf-p.yf],[line.points[1].xf-p.xf,line.points[1].yf-p.yf])<0-10^-8){
+                            //otherwise, the line will have to split into two lines, because the intersection was somewhere along the line
+                            p1 = line.points[0]
+                            p2 = line.points[1]
+                            if((eq(p1.xf,p.xf)&eq(p1.yf,p.yf)) | (eq(p.xf,p2.xf)&eq(p.yf,p2.yf))){
+                                continue //if for some reason p was equal to one of the end points
+                            }
+                            p1.lines.splice(p1.lines.indexOf(line),1)
+                            p1.lines.splice(p2.lines.indexOf(line),1) //the creases have not been ordered yet
+                            delete(this.stacklines[this.stacklines.indexOf(line)]) //this is important because we are iterating through the creases
+                            console.log('deleted',line)
+                            newLine1 = new Stackline(p1,p)
+                            newLine2 = new Stackline(p,p2)
+                            this.stacklines.push(newLine1,newLine2)
+                            console.log('added',newLine1,newLine2)
+                            p1.lines.push(newLine1)
+                            p2.lines.push(newLine2)
+                        }
+                    }
+                }
+            }
+        }
+        this.stacklines = this.stacklines.filter(Boolean)
+        for(i=0;i<this.stacklines.length-1;i++){
+            if(this.stacklines[i] == null){continue}
+            for(j=i+1;j<this.stacklines.length;j++){
+                if(this.stacklines[j] == null){continue}
+                if(haveSameContents(this.stacklines[i].points,this.stacklines[j].points)){
+                    this.stacklines[j].points[0].lines.splice(this.stacklines[j].points[0].lines.indexOf(this.stacklines[j]),1)
+                    this.stacklines[j].points[1].lines.splice(this.stacklines[j].points[1].lines.indexOf(this.stacklines[j]),1)
+                    console.log('deleted duplicate',this.stacklines[j])
+                    delete(this.stacklines[j])
+                }
+            }
+        }
+        this.stacklines = this.stacklines.filter(Boolean)
+        //[this.stacks,this.stackmatrix] = findStacks(this.stacklines) 
 
         //now create subfaces. iterate through the stacks and see if it's a subface of the face
     }
@@ -834,8 +908,9 @@ function linesIntersection(v1,v2,v3,v4){
     const x = ((x1*y2 - y1*x2)*(b2) - (b1)*(x3*y4 - y3*x4))/det
     const y = ((x1*y2 - y1*x2)*(a2) - (a1)*(x3*y4 - y3*x4))/det
 
-    //if the dot product of v1-p , v2-p is negative, the intersection crosses line 1. if 0, it intersects at v1 or v2
-    if(dot([x1-x,y1-y],[x2-x,y2-y]) >= 0 & dot([x3-x,y3-y],[x4-x,y4-y]) >= 0) {return null} //no intersection
+    //if the dot product of v1-p , v2-p is negative, the intersection crosses line 1. if 0, it's a T junction.
+    //we only want when it crosses both--skip t junction for now.
+    if(!(dot([x1-x,y1-y],[x2-x,y2-y]) < 0 & dot([x3-x,y3-y],[x4-x,y4-y]) < 0)) {return null} //no intersection
     else{return [x,y]} //the intersection lies along at least one of the lines
 }
 function isSubfaceOf(subface,face){
