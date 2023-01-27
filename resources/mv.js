@@ -1,6 +1,3 @@
-
-
-
 class PotentialCP{ //extends CP?
     //this is the node of a binary tree. the input cp will be the root node.
 
@@ -13,27 +10,57 @@ class PotentialCP{ //extends CP?
     //If the valley child also dies, be marked as dead and go up to parent.
     constructor(CP, parent){
         this.index = globalIndex; globalIndex++
+        allcps.push(this)
         this.CP = CP //cp object with creases,vertices, faces, etc
         this.parent = parent
         this.children = []
         this.alive = true //"dies" if its not flat foldable, or if both children are dead
     }
     createChild(){
-        var child = new PotentialCP(this.CP,this)
+        //we can only have two children because we're only making one decision. There may be more "no brainers" and more
+        //faces added if it runs into a section that's already assigned though.
+        if(this.children.length == 0){
+            var newCreaseMV = 'M'
+        } else if (this.children.length ==1){
+            var newCreaseMV = 'V'
+        } else {throw new Error('cannot create a third child')}
+
+        //create child as identical to parent
+        var child = new PotentialCP(structuredClone(this.CP),this)
         this.children.push(child)
 
+        //find which face to target next
+        mainloop: for(const assignedFace of child.CP.assignedFaces){
+            for(const neighbor of assignedFace.neighbors){
+                if(!neighbor.assigned){
+                    var newCrease = assignedFace.creases.find(element=>neighbor.creases.includes(element))
+                    newCrease.mv = newCreaseMV
+                    neighbor.assigned = true
+                    child.CP.assignedFaces.push(neighbor)
+                    break mainloop
+                }
+            }
+        }
+        //look for "no brainers" until nothing changes
+        findNoBrainers(newCrease)
+
+        //check again which faces are assigned
+        assignFaces(child.CP.faces,child.CP.faces[0])
+        child.CP.assignedFaces = []
+        child.CP.faces.forEach(element => element.assigned? child.CP.assignedFaces.push(element):null)
         return child
     }
 }
 
 function start(input){
+    console.log("starting");
     paper.project.clear();
     globalIndex = 0
-    console.log("starting");
+    allcps = []
     //note: will need to run a split/merge function to clean it up before processing
     inputcp = readCpFile(input);
     displaycp1.clear();
-    displaycp1 = inputcp.displayCp(10,50,390,430)
+    displaycp1 = displayCp(inputcp,10,50,390,430)
 
 }
 function dfs(inputcp){
@@ -63,9 +90,9 @@ function demo(inputcp){
     displayxray = inputcp.displayXray(200,640,380);
 
     try{displaycp2.clear()}catch{}
-    displaycp2 = inputcp.displayCp(410,50,790,430)
+    displaycp2 = displayCp(inputcp,410,50,790,430)
 
-    currentcp = new PotentialCP(inputcp,null)
+    currentcp = new PotentialCP(structuredClone(inputcp),null)
 
     /*
     if(currentcp.isFlatFoldable){yes(currentcp)} else{no(currentcp)}
@@ -78,8 +105,9 @@ function yes(currentcp){
         return currentcp
     }
     currentcp = currentcp.createChild()    
+    //run local flat foldability tests on the child. if the child fails, no(currentcp) and return
     displaycp2.clear()
-    displaycp2 = currentcp.CP.displayCp(410,50,790,430)
+    displaycp2 = displayCp(currentcp.CP,410,50,790,430)
     return currentcp
 }
 
@@ -89,18 +117,71 @@ function no(currentcp){
         alert("No solution can be found")
         return currentcp
     }
-    currentcp.dead = true
+    currentcp.alive = false
     currentcp = closestAncestor(currentcp)//go up the tree until you find a node who can have a child
     currentcp = currentcp.createChild()
+
+    //run local flat foldability tests on the child. if the child fails, no(currentcp) and return
+
     displaycp2.clear()
-    displaycp2 = currentcp.CP.displayCp(410,50,790,430)
+    displaycp2 = displayCp(currentcp.CP,410,50,790,430)
     return currentcp
     
 }
 function closestAncestor(currentcp){
-    if((!currentcp.dead & currentcp.children.length<2) | currentcp.parent == null){
+    if((currentcp.alive & currentcp.children.length<2)){
         return currentcp
-    } else{
+    }else if (currentcp.parent == null){
+        alert("No solution can be found")
+        return currentcp
+    }else{
         return closestAncestor(currentcp.parent)
+    }
+}
+
+function assignFaces(faces,startingFace){
+    var startingFace = faces[0] //this is arbitrarily chosen
+    //bfs throughout the graph to give every face a distance from the starting face
+    faces.forEach(element => element.assigned = false)
+    startingFace.assigned = true
+    function spread(face){
+        for(const neighbor of face.neighbors){
+            if(['M','V'].includes(face.creases.find(element=>neighbor.creases.includes(element)).mv)){
+                neighbor.assigned = true
+            }
+            if(neighbor.distance > face.distance || neighbor.distance == undefined){
+                neighbor.distance = face.distance + 1
+            }
+        }
+        for(const neighbor of face.neighbors){
+            if(neighbor.distance == face.distance+1){
+                spread(neighbor)
+            }
+        }
+    }
+    spread(startingFace)
+}
+function findNoBrainers(crease){
+    //look for no brainer vertex on either side of the crease
+    //a no brainer is a case where there's one aux left, and we know which way it goes based on the other creases of the vertex
+    //recursive, after changing a crease plug that crease in as well
+    console.log("checking no brainer")
+    mainloop: for(const vertex of crease.vertices){
+        var M = 0; //these are just counters
+        var V = 0;
+        var AuxCreases = []; //this will actually store the crease(s) that are aux
+        for(const crease of vertex.creases){
+            if(crease.mv == 'M'){M+=1}
+            if(crease.mv == 'V'){V+=1}
+            if(crease.mv == 'A'){AuxCreases.push(crease)}
+            if(crease.mv == 'E'){continue mainloop} //doesn't count if its on the edge. unless you're doing big little big lemma
+        }
+        console.log(M,V,AuxCreases)
+        if(AuxCreases.length == 1){
+            //we can assume there's an even number of creases, if it's gotten this far
+            console.log("found no brainer")
+            AuxCreases[0].mv = (V-M == 3)|(M-V==1)?'M':'V'
+            findNoBrainers(AuxCreases[0])
+        } else {continue mainloop}
     }
 }

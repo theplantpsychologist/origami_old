@@ -508,47 +508,6 @@ class CP {
         //check for taco taco and taco tortilla 
         //oof this is tough
     }
-    displayCp(x1,y1,x2,y2){ //so you can position where to draw it
-        function convertx(cp){
-            //Converting cp coords, which range from 0,1, into js coords which range from x1,x2 and y1,y2
-            return x1+cp*(x2-x1);
-        }
-        function converty(cp){
-            //also the y coordinates are displayed upside down
-            return y1-cp*(y1-y2);
-        }
-        //var border = new paper.Path.Rectangle(x1,y1,x2-x1,y2-y1);
-        //border.strokeColor = 'black';
-        //border.strokeWidth = (x2-x1)/100;
-
-        var creaselines = new paper.Group();
-        for(i=0;i<this.creases.length;i++){
-            line = new paper.Path.Line(
-                new paper.Point(convertx(this.creases[i].vertices[0].x),converty(this.creases[i].vertices[0].y)),
-                new paper.Point(convertx(this.creases[i].vertices[1].x),converty(this.creases[i].vertices[1].y))
-            )
-            line.strokeColor = creases[i].mv=='M'?"#EB5160" : creases[i].mv=='V'?"#33A1FD" : creases[i].mv=='A'?"#0DE4B3":'black'
-            creaselines.addChild(line);
-        }
-        creaselines.strokeWidth = (x2-x1)/200;
-
-        var errorcircles = new paper.Group();
-        for(i=0;i<this.vertices.length;i++){
-            if(!this.vertices[i].angularFoldable){
-                var circle = new paper.Path.Circle({
-                    center: new paper.Point(convertx(this.vertices[i].x),converty(this.vertices[i].y)),
-                    radius: (x2-x1)/30,
-                    opacity: 0.3,
-                    fillColor: 'purple'
-                })
-                errorcircles.addChild(circle);
-            }
-        }
-        var cp = new paper.Group()
-        cp.addChild(creaselines)
-        cp.addChild(errorcircles)
-        return cp
-    }
     displayXray(xc,yc,scale){
         var totalCenterx = 0
         var totalCentery = 0
@@ -746,7 +705,6 @@ function readCpFile(file){
     }}
     return new CP(vertices,creases)
 }
-
 function exportCpFile(CP){
     console.log("stay tuned")
 }
@@ -761,7 +719,6 @@ function eq(a,b){
 function dot(v1,v2){
     return v1[0]*v2[0] + v1[1]*v2[1]
 }
-
 function split(creases,vertices){
     //takes in a list of creases and vertices
     /*need to fix things like:
@@ -811,6 +768,47 @@ function split(creases,vertices){
     vertices.filter(Boolean)
     return[creases,vertices]
     //when this is done, fix the read cp function
+}
+function displayCp(CP,x1,y1,x2,y2){ //so you can position where to draw it
+    function convertx(cp){
+        //Converting cp coords, which range from 0,1, into js coords which range from x1,x2 and y1,y2
+        return x1+cp*(x2-x1);
+    }
+    function converty(cp){
+        //also the y coordinates are displayed upside down
+        return y1-cp*(y1-y2);
+    }
+    //var border = new paper.Path.Rectangle(x1,y1,x2-x1,y2-y1);
+    //border.strokeColor = 'black';
+    //border.strokeWidth = (x2-x1)/100;
+
+    var creaselines = new paper.Group();
+    for(i=0;i<CP.creases.length;i++){
+        line = new paper.Path.Line(
+            new paper.Point(convertx(CP.creases[i].vertices[0].x),converty(CP.creases[i].vertices[0].y)),
+            new paper.Point(convertx(CP.creases[i].vertices[1].x),converty(CP.creases[i].vertices[1].y))
+        )
+        line.strokeColor = CP.creases[i].mv=='M'?"#EB5160" : CP.creases[i].mv=='V'?"#33A1FD" : CP.creases[i].mv=='A'?"#0DE4B3":'black'
+        creaselines.addChild(line);
+    }
+    creaselines.strokeWidth = (x2-x1)/200;
+
+    var errorcircles = new paper.Group();
+    for(i=0;i<CP.vertices.length;i++){
+        if(!CP.vertices[i].angularFoldable){
+            var circle = new paper.Path.Circle({
+                center: new paper.Point(convertx(CP.vertices[i].x),converty(CP.vertices[i].y)),
+                radius: (x2-x1)/30,
+                opacity: 0.3,
+                fillColor: 'purple'
+            })
+            errorcircles.addChild(circle);
+        }
+    }
+    var cp = new paper.Group()
+    cp.addChild(creaselines)
+    cp.addChild(errorcircles)
+    return cp
 }
 
 //face finding

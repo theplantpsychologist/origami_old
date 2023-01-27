@@ -55,10 +55,10 @@
 
         <div>
             <button type = button onclick="dfs(inputcp)">Find solution</button>
-            <button type = button onclick="demo(inputcp)">[temporary] guided solution</button>
+            <button type = button onclick="demo(inputcp)">Begin manual solution</button>
         </div> 
         <div>
-            <p style="text-align: right;">Is the current cp flat foldable? (temporarily doing this manually)</p>
+            <p style="text-align: right;">Is the current cp flat foldable? (for manual solution)</p>
             <button type = button onclick="currentcp = yes(currentcp)" style="float:right; margin-right: 10px;">Yes</button>
             <button type = button onclick="currentcp = no(currentcp)" style="float:right;margin-right: 10px">No</button>
         </div> 
@@ -78,7 +78,7 @@
         <canvas id="square" width="800" height = "900"></canvas>
         <script src="paper-core.js"></script>
         <script src="origami.js"></script>
-        <script src="mv.js">what</script>
+        <script src="mv.js"></script>
         <script type="text/javascript" data-paper-ignore="true">
             paper.setup(document.getElementById("square"))
             var inputcp = null;
@@ -89,6 +89,7 @@
 
             var currentcp
             var globalIndex //so we can number our cps
+            var allcps
         </script>
 
 
