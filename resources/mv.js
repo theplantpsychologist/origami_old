@@ -91,10 +91,12 @@ function demo(inputcp){
     try{displayxray.clear()}catch{}
     displayxray = inputcp.displayXray(200,640,380);
 
-    try{displaycp2.clear()}catch{}
-    displaycp2 = displayCp(inputcp,410,50,790,430)
-
     currentcp = new PotentialCP(structuredClone(inputcp),null)
+
+    displaycp2.clear()
+    displaycp2 = displayCp(currentcp.CP,410,50,790,430)
+    displaycp2.addChild(displayAssignedFaces(currentcp.CP,410,50,790,430))
+    
 
     alert("This is just a placeholder until the built in self intersection detection is working. For now, please look at the crease patterns on the right and see if they have self intersection or not, until it is fully assigned.")
 
@@ -112,6 +114,7 @@ function yes(currentcp){
     //run local flat foldability tests on the child. if the child fails, no(currentcp) and return
     displaycp2.clear()
     displaycp2 = displayCp(currentcp.CP,410,50,790,430)
+    displaycp2.addChild(displayAssignedFaces(currentcp.CP,410,50,790,430))
     return currentcp
 }
 
@@ -129,6 +132,7 @@ function no(currentcp){
 
     displaycp2.clear()
     displaycp2 = displayCp(currentcp.CP,410,50,790,430)
+    displaycp2.addChild(displayAssignedFaces(currentcp.CP,410,50,790,430))
     return currentcp
     
 }
@@ -172,9 +176,47 @@ function findNoBrainers(crease){
             if(crease.mv == 'E'){continue mainloop} //doesn't count if its on the edge. unless you're doing big little big lemma
         }
         if(AuxCreases.length == 1){
-            //we can assume there's an even number of creases, if it's gotten this far
+            //we assume there's an even number of creases, if it's gotten this far
             AuxCreases[0].mv = (V-M == 3)|(M-V==1)?'M':'V'
             findNoBrainers(AuxCreases[0])
         } else {continue mainloop}
     }
+}
+function displayAssignedFaces(CP,x1,y1,x2,y2){
+    var faces = new paper.Group()
+    function convertx(cp){
+        //Converting cp coords, which range from 0,1, into js coords which range from x1,x2 and y1,y2
+        return x1+cp*(x2-x1);
+    }
+    function converty(cp){
+        //also the y coordinates are displayed upside down
+        return y1-cp*(y1-y2);
+    }
+
+    for(const face of CP.faces){
+        if(face.assigned){continue}
+        var displayface = new paper.Path();
+        for(const vertex of face.vertices){
+            displayface.add(new paper.Point(convertx(vertex.x),converty(vertex.y)))
+        }
+        displayface.closed = true;
+        displayface.strokeColor = 'black'
+        displayface.opacity = 0.3
+        displayface.fillColor = 'black'
+        displayface.strokeWidth = 0;
+        faces.addChild(displayface)
+    }
+    /*
+    var rootface = new paper.Path();
+    for(const vertex of CP.faces[0].vertices){
+        rootface.add(new paper.Point(convertx(vertex.x),converty(vertex.y)))
+    }
+    rootface.closed = true;
+    rootface.strokeColor = 'black'
+    rootface.opacity = 0.2
+    rootface.fillColor = 'green'
+    rootface.strokeWidth = 0;
+    faces.addChild(rootface)
+    */
+    return faces
 }
