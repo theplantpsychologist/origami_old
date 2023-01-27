@@ -1,3 +1,5 @@
+//The algorithm can overall be sped up by also taking into account the LFFs (described in Twists Tilings and Tesellations)
+
 class PotentialCP{ //extends CP?
     //this is the node of a binary tree. the input cp will be the root node.
 
@@ -94,6 +96,8 @@ function demo(inputcp){
 
     currentcp = new PotentialCP(structuredClone(inputcp),null)
 
+    alert("This is just a placeholder until the built in self intersection detection is working. For now, please look at the crease patterns on the right and see if they have self intersection or not, until it is fully assigned.")
+
     /*
     if(currentcp.isFlatFoldable){yes(currentcp)} else{no(currentcp)}
     */
@@ -140,32 +144,23 @@ function closestAncestor(currentcp){
 }
 
 function assignFaces(faces,startingFace){
-    var startingFace = faces[0] //this is arbitrarily chosen
-    //bfs throughout the graph to give every face a distance from the starting face
     faces.forEach(element => element.assigned = false)
     startingFace.assigned = true
-    function spread(face){
-        for(const neighbor of face.neighbors){
-            if(['M','V'].includes(face.creases.find(element=>neighbor.creases.includes(element)).mv)){
-                neighbor.assigned = true
-            }
-            if(neighbor.distance > face.distance || neighbor.distance == undefined){
-                neighbor.distance = face.distance + 1
-            }
-        }
-        for(const neighbor of face.neighbors){
-            if(neighbor.distance == face.distance+1){
-                spread(neighbor)
-            }
-        }
-    }
     spread(startingFace)
 }
+function spread(face){
+    for(const neighbor of face.neighbors){
+        if((!neighbor.assigned) & ['M','V'].includes(face.creases.find(element=>neighbor.creases.includes(element)).mv)){
+            neighbor.assigned = true
+            spread(neighbor)
+        }
+    }
+}
+
 function findNoBrainers(crease){
     //look for no brainer vertex on either side of the crease
     //a no brainer is a case where there's one aux left, and we know which way it goes based on the other creases of the vertex
     //recursive, after changing a crease plug that crease in as well
-    console.log("checking no brainer")
     mainloop: for(const vertex of crease.vertices){
         var M = 0; //these are just counters
         var V = 0;
@@ -176,10 +171,8 @@ function findNoBrainers(crease){
             if(crease.mv == 'A'){AuxCreases.push(crease)}
             if(crease.mv == 'E'){continue mainloop} //doesn't count if its on the edge. unless you're doing big little big lemma
         }
-        console.log(M,V,AuxCreases)
         if(AuxCreases.length == 1){
             //we can assume there's an even number of creases, if it's gotten this far
-            console.log("found no brainer")
             AuxCreases[0].mv = (V-M == 3)|(M-V==1)?'M':'V'
             findNoBrainers(AuxCreases[0])
         } else {continue mainloop}
