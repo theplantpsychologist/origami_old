@@ -222,6 +222,7 @@ class CP {
         }
         this.stacks = []
         this.stackmatrix = []
+        this.assignedFaces = []
     }
     
     foldXray(){
@@ -270,6 +271,8 @@ class CP {
 
         //for each face, find the path to the starting face. reset xf = x before doing anything
         //keep reflecting along the path, updating xf until you get get to the starting face
+        this.assignedFaces = []
+        for(const face of this.faces){if(face.assigned){this.assignedFaces.push(face)}}
     }
     findStacks1(){
         this.assignedFaces = []
@@ -338,8 +341,10 @@ class CP {
                         //handle this case now because they are parallel and won't be noticed by the line intersection function
                         if(eq(Math.abs(Math.atan(oldLine.points[0].yf-oldLine.points[1].yf,oldLine.points[0].xf-oldLine.points[1].xf)),
                               Math.abs(Math.atan(newLine.points[0].yf-newLine.points[1].yf,newLine.points[0].xf-newLine.points[1].xf))) &
-                              pointOnLine(oldLine.points[0],newLine) | pointOnLine(oldLine.points[1],newLine) &
-                              pointOnLine(newLine.points[0],oldLine) | pointOnLine(newLine.points[1],oldLine)){
+                              (pointOnLine(oldLine.points[0],newLine) | pointOnLine(oldLine.points[1],newLine)&
+                                pointOnLine(newLine.points[0],oldLine) | pointOnLine(newLine.points[1],oldLine)   ) |
+                              (pointOnLine(newLine.points[0],oldLine) & pointOnLine(newLine.points[1],oldLine)) | 
+                              (pointOnLine(oldLine.points[0],newLine) & pointOnLine(oldLine.points[1],newLine)) ){
                             //points are colinear. now find order
                             var fourPoints = [oldLine.points[0],oldLine.points[1],newLine.points[0],newLine.points[1]]
                             fourPoints.sort((a,b) => (Math.abs(a.xf)+Math.abs(a.yf)) - (Math.abs(b.xf)+Math.abs(b.yf)))
@@ -356,9 +361,8 @@ class CP {
                 }
             }
         }
+
         this.stacklines = this.stacklines.filter(Boolean) //remove the deleted empty ones
-        console.log(this.stacklines)
-        //this.displayStacks(200,440,380)
         //now check for intersections that happen not on existing vertices
         for(const line1 of this.stacklines.slice(0,this.stacklines.length-1)){
             if(line1==null){continue}
@@ -366,8 +370,6 @@ class CP {
                 if(line2==null | line1 == null){continue}
                 //check for direct duplicates
                 if(haveSameContents(line1.points,line2.points)){
-                    line2.points[0].lines.splice(line2.points[0].lines.indexOf(line2),1)
-                    line2.points[1].lines.splice(line2.points[1].lines.indexOf(line2),1)
                     delete(this.stacklines[this.stacklines.indexOf(line1)])
                     continue
                 }
@@ -422,26 +424,50 @@ class CP {
                 }
             }
         }
-        //check for duplicates again? the backup delete is useful apparently    
-        for(i=0;i<this.stacklines.length-1;i++){
-            if(this.stacklines[i] == null){continue}
-            for(j=i+1;j<this.stacklines.length;j++){
-                if(this.stacklines[j] == null){continue}
-                if(haveSameContents(this.stacklines[i].points,this.stacklines[j].points)){
-                    //this.stacklines[j].points[0].lines.splice(this.stacklines[j].points[0].lines.indexOf(this.stacklines[j]),1)
-                    //this.stacklines[j].points[1].lines.splice(this.stacklines[j].points[1].lines.indexOf(this.stacklines[j]),1)
-                    delete(this.stacklines[j])
-                }
+        //check for duplicates again? the backup delete is useful apparently 
+        for(const line1 of this.stacklines.slice(0,this.stacklines.length-1)){
+            if(line1==null){continue}
+            for(const line2 of this.stacklines.slice(this.stacklines.indexOf(line1)+1,this.stacklines.length)){
+                if(line2==null | line1 == null){continue}
+                if(haveSameContents(line1.points,line2.points)){
+                    //line2.points[0].lines.splice(line2.points[0].lines.indexOf(line2),1)
+                    //line2.points[1].lines.splice(line2.points[1].lines.indexOf(line2),1)
+                    delete(this.stacklines[this.stacklines.indexOf(line1)])
+                    continue
+                }   
             }
         }
+
+        //tell the points which lines they're connected to
         this.stacklines = this.stacklines.filter(Boolean)
         for(const point of this.stackpoints){point.lines = []}
         for(const line of this.stacklines){
             line.points[0].lines.push(line)
             line.points[1].lines.push(line)
         }
-
         this.stackpoints.forEach((element) => element.sortAngles())
+
+        //one last patch
+        /*
+        for(const point1 of this.stackpoints.slice(0,this.stackpoints.length-1)){
+            for(const point2 of this.stackpoints.slice(this.stackpoints.indexOf(point1)+1,this.stackpoints.length)){
+                var point1Duplicates = []
+                point1.angles.forEach((angle1,index1)=> point1.angles.forEach((angle2,index2)=> eq(angle1,angle2)&(index1!=index2)? point1Duplicates.push([index1,index2]):null))
+                var point2Duplicates = []
+                point2.angles.forEach((angle1,index1)=> point2.angles.forEach((angle2,index2)=> eq(angle1,angle2)&(index1!=index2)? point2Duplicates.push([index1,index2]):null))
+
+                commonIndices = haveCommonElement([point1.lines[point1Duplicates[0]],point1.lines[point1Duplicates[1]]],
+                                                  [point2.lines[point2Duplicates[0]],point2.lines[point2Duplicates[1]]])
+                if(commonIndices.length>0){
+                    console.log('deleted by backup patch')
+                    this.stacklines.splice(this.stacklines.indexOf(point1.lines[commonIndices[0][0]]),1)
+                    point1.lines.splice(commonIndices[0][0],1)
+                    point2.lines.splice(commonIndices[0][1],1)
+                }
+            }
+        }
+        */
+
         this.stacks = findStacks(this.stacklines) 
 
         for(const stack of this.stacks){
@@ -460,7 +486,14 @@ class CP {
 
         //now create subfaces. iterate through the stacks and see if it's a subface of the face
         for(const face of this.faces){
-
+            for(const stack of this.stacks){
+                if(isStackInFace(stack,face)){
+                    var newSubface = new Subface(face,stack)
+                    stack.subfaces.push(newSubface)
+                    face.subfaces.push(newSubface)
+                }
+                
+            }
         }
     }
     testFoldability(){
@@ -511,6 +544,10 @@ class CP {
                 errorcircles.addChild(circle);
             }
         }
+        var cp = new paper.Group()
+        cp.addChild(creaselines)
+        cp.addChild(errorcircles)
+        return cp
     }
     displayXray(xc,yc,scale){
         var totalCenterx = 0
@@ -899,8 +936,8 @@ function findFaces(creases){
     for(crease of creases){
         if(crease.faces.length !=2){continue}
         
-        matrix[faces.indexOf(crease.faces[0])][faces.indexOf(crease.faces[1])] = crease
-        matrix[faces.indexOf(crease.faces[1])][faces.indexOf(crease.faces[0])] = crease
+        //matrix[faces.indexOf(crease.faces[0])][faces.indexOf(crease.faces[1])] = crease
+        //matrix[faces.indexOf(crease.faces[1])][faces.indexOf(crease.faces[0])] = crease
 
         crease.faces[1].neighbors.push(crease.faces[0])
         crease.faces[0].neighbors.push(crease.faces[1])
@@ -938,8 +975,12 @@ function linesIntersection(v1,v2,v3,v4){
 function pointOnLine(p,line){
     //if the point lies on the line segment
     //will return true if the point lies on one of the line segments
-    var a = line.points[0]
-    var b = line.points[1]
+    try{var a = line.points[0]
+        var b = line.points[1]}
+    catch{ //if the line was actually a crease object, of a face
+        var a = line.vertices[0]
+        var b = line.vertices[1]
+    }
     ap = [a.xf-p.xf, a.yf-p.yf]
     bp = [b.xf-p.xf, b.yf-p.yf]
     if(eq(dot(ap,bp),-1*(ap[0]**2 + ap[1]**2)**0.5*(bp[0]**2 + bp[1]**2)**0.5)){
@@ -956,7 +997,7 @@ function isPointInPolygon(point,polygon){
     
     var crosses = 0
     var testline = new Stackline(point, new Stackpoint(100,point.yf))
-    for(const line of polygon.crease){
+    for(const line of polygon.creases){
         if(pointOnLine(point,line)){
             return true //we accept being on the border or on a vertexas being in the polygon
         }
@@ -1022,5 +1063,28 @@ function findStacks(lines){
 function isStackInFace(stack,face){
     //if divided correctly, it should be impossible for some points of the stack to be in and some to be out.
     //however, you can have some that are on the edge and some that are out, and the stack will be out
+
+    //Go through the points on the stack. if any of them miss completely (crosses = 0), the whole thing is false
+    //if any of them are on the line, check the next one
+    //if any of them are in the face and not on the line, the whole thing is true
+    for(const point in stack.points){
+        var crosses = 0
+        var testline = new Stackline(point, new Stackpoint(100,point.yf))
+        for(const line of face.creases){
+            if(pointOnLine(point,line)){
+                crosses = 'on the line'
+                break
+            }
+            if(linesIntersection(line.points[0],line.points[1],testline.points[0],testline.points[1])){
+                crosses++
+            }
+        }
+        if(crosses == 'on the line'){continue} //check next point
+        if(crosses%2 == 0){return false}
+        console.log('true because point was inside',point,face.vertices)
+        if(crosses==1){return true}
+    }
+    console.log('true by default')
+    return true
 }
 
