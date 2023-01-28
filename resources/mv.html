@@ -74,11 +74,12 @@
         </div>
          
         
-        <canvas id="square" width="800" height = "900"></canvas>
+        <canvas id="square" width="800" height = "700"></canvas>
         <script src="paper-core.js"></script>
         <script src="origami.js"></script>
         <script src="mv.js"></script>
         <script src="example.js"></script>
+
         <script type="text/javascript" data-paper-ignore="true">
             paper.setup(document.getElementById("square"))
             var inputcp = null;
@@ -97,6 +98,22 @@
             alert("please click 'begin manual solution' to start the example")
 
         </script>
+        <div>
+            <h2>Notes about this program</h2>
+            <p><b>How to use:</b> upload a .cp file, using auxiliary lines to indicate creases for which you don't know the direction. You can assign m/v to the creases that you do know.
+                Make sure your creases are in the default [-200,200] box, and there are no extra creases outside of that.
+            </p>
+            <p><b>How it works:</b> All the possible mv assignments of a cp would form a large binary tree, since each unassigned crease can either become M or V.
+                This program essentially traverses the tree depth first until it reaches a flat foldable solution with all creases assigned. 
+                <br><br>
+                More specifically, at every level of the tree it assigns a crease such that a new face is able to make a path back to the starting face without crossing
+                unassigned creases. (These unreached faces are shaded grey.) Sometimes this allows the program to add multiple creases in one iteration.
+            </p>
+            <br><br>
+            <p>
+                This program was created by Brandon Wong. <a href="https://github.com/theplantpsychologist/origami/tree/master/resources">Github</a>
+            </p>
+        </div>
     </div>
 </body>
 </html>

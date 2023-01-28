@@ -92,6 +92,12 @@ function demo(inputcp){
     displayxray = inputcp.displayXray(200,640,380);
 
     currentcp = new PotentialCP(structuredClone(inputcp),null)
+    for(const crease of currentcp.CP.creases){
+        findNoBrainers(crease) //look for no brainers in the input
+    }
+    assignFaces(currentcp.CP.faces,currentcp.CP.faces[0])
+    currentcp.CP.assignedFaces = []
+    currentcp.CP.faces.forEach(element => element.assigned? currentcp.CP.assignedFaces.push(element):null)
 
     displaycp2.clear()
     displaycp2 = displayCp(currentcp.CP,410,50,790,430)
@@ -112,6 +118,10 @@ function yes(currentcp){
     }
     currentcp = currentcp.createChild()    
     //run local flat foldability tests on the child. if the child fails, no(currentcp) and return
+    if(!checkLocalFlatFoldability(currentcp.CP)){
+        currentcp = no(currentcp)
+        return
+    }
     displaycp2.clear()
     displaycp2 = displayCp(currentcp.CP,410,50,790,430)
     displaycp2.addChild(displayAssignedFaces(currentcp.CP,410,50,790,430))
@@ -129,7 +139,10 @@ function no(currentcp){
     currentcp = currentcp.createChild()
 
     //run local flat foldability tests on the child. if the child fails, no(currentcp) and return
-
+    if(!checkLocalFlatFoldability(currentcp.CP)){
+        currentcp = no(currentcp)
+        return
+    }
     displaycp2.clear()
     displaycp2 = displayCp(currentcp.CP,410,50,790,430)
     displaycp2.addChild(displayAssignedFaces(currentcp.CP,410,50,790,430))
@@ -219,4 +232,14 @@ function displayAssignedFaces(CP,x1,y1,x2,y2){
     faces.addChild(rootface)
     */
     return faces
+}
+function checkLocalFlatFoldability(CP){
+    //return true if there are no problems. return false if there are any issues.
+    return true
+    for(const vertex in CP.vertices){
+        if(!isVertexFlatFoldable(vertex)){
+            return false
+        }
+    }
+    return true
 }

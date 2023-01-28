@@ -54,23 +54,7 @@ class Vertex {
         this.yf = y;
         //this.angularFoldable = null;
     }
-    /*addCrease(v2){
-        //Add a crease that connects to other vertex v2
-        //Check to see if v2 already exists or not
-        v2exists = false
-        for(var j = 0; j<vertices.length; j++){
-            if(vertices[j].x == v2.x && vertices[j].y == v2.y){
-                v2 = vertices[j]
-                v2exists = true
-                break
-            }
-        }
-        if(!v2exists){vertices.push(v2)}
-        crease = new Crease(this,v2)
-        creases.push(crease)
-        this.connectedCreases.push(crease)
-        v2.connectedCreases.push(crease)
-    }*/
+
     checkAngularFlatFoldability(){
 
         //get angles of creases. For each crease, use atan2 on the other vertex
