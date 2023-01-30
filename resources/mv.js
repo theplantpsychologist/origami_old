@@ -1,4 +1,15 @@
-//The algorithm can overall be sped up by also taking into account the LFFs (described in Twists Tilings and Tesellations)
+/*
+Things to work on:
+ - finish implementing global self intersection detection
+
+ - finding next solution, and/or all solutions
+ - downloading cp files, as .FOLD or svg or idk
+ - inputting non-square cp files
+ - inputting .FOLD or other formats
+
+ - improve computation time/size limit. (for scale, oriedita folds 1500 crease cp in 2.7 secs)
+*/
+
 
 class PotentialCP{ //extends CP?
     //this is the node of a binary tree. the input cp will be the root node.
@@ -77,34 +88,6 @@ function start(input){
     displaycp1.clear();
     displaycp1 = displayCp(inputcp,10,50,390,430)
 
-}
-function testGlobalFlatFoldability(inputcp){
-    return true
-    //the default way to automatically find one solution
-    if(!inputcp.angularFoldable){
-        alert("This crease pattern has local flat foldability issues. Please fix the highlighted vertices and try again.")
-        return
-    }
-    inputcp.foldXray(); //already
-    //inputcp.displayXray(200,640,380);
-    inputcp.findStacks1();
-    inputcp.displayStacks(200,640,380);
-
-    //dfs will run a dfs of a binary tree made of PotentialCP until one solution is found
-    //it's also running a bfs on a connectivity matrix of the faces. for n faces, we'll store it as an nxn matrix
-    //a 0 in spot (i,j) means faces i and j are not connected
-    //a
-}
-function dfs(inputcp){
-    while(!currentcp.done){
-        if(testGlobalFlatFoldability(currentcp.CP)){
-            currentcp = yes(currentcp)
-        } else {
-            currentcp = no(currentcp)
-        }
-    }
-}
-function demo(inputcp){
     if(!inputcp.angularFoldable){
         alert("This crease pattern has local flat foldability issues. Please fix the highlighted vertices and try again.")
         return
@@ -124,14 +107,35 @@ function demo(inputcp){
     displaycp2.clear()
     displaycp2 = displayCp(currentcp.CP,410,50,790,430)
     displaycp2.addChild(displayAssignedFaces(currentcp.CP,410,50,790,430))
-    
 
-    alert("This is just a placeholder until the built in self intersection detection is working. For now, please look at the crease patterns on the right and see if they have self intersection or not, until it is fully assigned.")
-
-    /*
-    if(currentcp.isFlatFoldable){yes(currentcp)} else{no(currentcp)}
-    */
 }
+function testGlobalFlatFoldability(inputcp){
+    return true
+}
+
+
+function testing(inputcp){
+    if(!inputcp.angularFoldable){
+        alert("This crease pattern has local flat foldability issues. Please fix the highlighted vertices and try again.")
+        return
+    }
+    inputcp.foldXray(); //already
+    //inputcp.displayXray(200,640,380);
+    inputcp.findStacks1();
+    inputcp.displayStacks(200,640,380);
+}
+
+
+function dfs(currentcp){
+    while(!currentcp.done){
+        if(testGlobalFlatFoldability(currentcp.CP)){
+            currentcp = yes(currentcp)
+        } else {
+            currentcp = no(currentcp)
+        }
+    }
+}
+
 function yes(currentcp){
     console.log("yes")
     if(currentcp.CP.assignedFaces.length == currentcp.CP.faces.length){
