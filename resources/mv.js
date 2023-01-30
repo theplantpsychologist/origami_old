@@ -29,6 +29,13 @@ class PotentialCP{ //extends CP?
 
         //create child as identical to parent
         var child = new PotentialCP(structuredClone(this.CP),this)
+        // var child = new PotentialCP(new CP(
+        //     structuredClone(this.CP.vertices),
+        //     structuredClone(this.CP.creases),
+        // ),this)
+        // child.faces = structuredClone(this.faces)
+        // child.assignedFaces = structuredClone(this.assignedFaces)
+
         this.children.push(child)
 
         //find which face to target next
@@ -119,8 +126,7 @@ function yes(currentcp){
     currentcp = currentcp.createChild()    
     //run local flat foldability tests on the child. if the child fails, no(currentcp) and return
     if(!checkLocalFlatFoldability(currentcp.CP)){
-        currentcp = no(currentcp)
-        return
+        return no(currentcp)
     }
     displaycp2.clear()
     displaycp2 = displayCp(currentcp.CP,410,50,790,430)
@@ -140,8 +146,7 @@ function no(currentcp){
 
     //run local flat foldability tests on the child. if the child fails, no(currentcp) and return
     if(!checkLocalFlatFoldability(currentcp.CP)){
-        currentcp = no(currentcp)
-        return
+        return no(currentcp)
     }
     displaycp2.clear()
     displaycp2 = displayCp(currentcp.CP,410,50,790,430)
@@ -235,11 +240,12 @@ function displayAssignedFaces(CP,x1,y1,x2,y2){
 }
 function checkLocalFlatFoldability(CP){
     //return true if there are no problems. return false if there are any issues.
-    return true
-    for(const vertex in CP.vertices){
+    for(const vertex of CP.vertices){
         if(!isVertexFlatFoldable(vertex)){
+            console.log(vertex.x,vertex.y,vertex.reason)
             return false
         }
     }
     return true
 }
+
