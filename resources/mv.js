@@ -17,6 +17,7 @@ class PotentialCP{ //extends CP?
         this.parent = parent
         this.children = []
         this.alive = true //"dies" if its not flat foldable, or if both children are dead
+        this.done = false //break condition for while loop
     }
     createChild(){
         //we can only have two children because we're only making one decision. There may be more "no brainers" and more
@@ -25,7 +26,12 @@ class PotentialCP{ //extends CP?
             var newCreaseMV = 'M'
         } else if (this.children.length ==1){
             var newCreaseMV = 'V'
-        } else {throw new Error('cannot create a third child')}
+        } else {
+            currentcp = no(currentcp)
+            console.log('attempted to create third child')
+            return
+            throw new Error('cannot create a third child')
+        }
 
         //create child as identical to parent
         var child = new PotentialCP(structuredClone(this.CP),this)
@@ -72,7 +78,8 @@ function start(input){
     displaycp1 = displayCp(inputcp,10,50,390,430)
 
 }
-function dfs(inputcp){
+function testGlobalFlatFoldability(inputcp){
+    return true
     //the default way to automatically find one solution
     if(!inputcp.angularFoldable){
         alert("This crease pattern has local flat foldability issues. Please fix the highlighted vertices and try again.")
@@ -88,7 +95,15 @@ function dfs(inputcp){
     //a 0 in spot (i,j) means faces i and j are not connected
     //a
 }
-
+function dfs(inputcp){
+    while(!currentcp.done){
+        if(testGlobalFlatFoldability(currentcp.CP)){
+            currentcp = yes(currentcp)
+        } else {
+            currentcp = no(currentcp)
+        }
+    }
+}
 function demo(inputcp){
     if(!inputcp.angularFoldable){
         alert("This crease pattern has local flat foldability issues. Please fix the highlighted vertices and try again.")
@@ -120,7 +135,8 @@ function demo(inputcp){
 function yes(currentcp){
     console.log("yes")
     if(currentcp.CP.assignedFaces.length == currentcp.CP.faces.length){
-        alert("The cp has been fully assigned")
+        //alert("The cp has been fully assigned")
+        currentcp.done = true
         return currentcp
     }
     currentcp = currentcp.createChild()    
@@ -128,6 +144,8 @@ function yes(currentcp){
     if(!checkLocalFlatFoldability(currentcp.CP)){
         return no(currentcp)
     }
+
+    
     displaycp2.clear()
     displaycp2 = displayCp(currentcp.CP,410,50,790,430)
     displaycp2.addChild(displayAssignedFaces(currentcp.CP,410,50,790,430))
@@ -138,6 +156,7 @@ function no(currentcp){
     console.log("no")
     if(currentcp.index == 0) { //alternatively, if currentcp.parent == null
         alert("No solution can be found")
+        currentcp.done = true
         return currentcp
     }
     currentcp.alive = false
@@ -183,7 +202,8 @@ function findNoBrainers(crease){
     //look for no brainer vertex on either side of the crease
     //a no brainer is a case where there's one aux left, and we know which way it goes based on the other creases of the vertex
     //recursive, after changing a crease plug that crease in as well
-    mainloop: for(const vertex of crease.vertices){
+    try{
+        mainloop: for(const vertex of crease.vertices){
         var M = 0; //these are just counters
         var V = 0;
         var AuxCreases = []; //this will actually store the crease(s) that are aux
@@ -198,7 +218,9 @@ function findNoBrainers(crease){
             AuxCreases[0].mv = (V-M == 3)|(M-V==1)?'M':'V'
             findNoBrainers(AuxCreases[0])
         } else {continue mainloop}
-    }
+        }
+    } catch{console.log(crease); throw new Error("no brainers problem")}
+    
 }
 function displayAssignedFaces(CP,x1,y1,x2,y2){
     var faces = new paper.Group()
@@ -242,7 +264,7 @@ function checkLocalFlatFoldability(CP){
     //return true if there are no problems. return false if there are any issues.
     for(const vertex of CP.vertices){
         if(!isVertexFlatFoldable(vertex)){
-            console.log(vertex.x,vertex.y,vertex.reason)
+            //console.log(vertex.x,vertex.y,vertex.reason)
             return false
         }
     }

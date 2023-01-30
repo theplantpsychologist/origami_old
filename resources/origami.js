@@ -1029,17 +1029,17 @@ function isVertexFlatFoldable(vertex){
     mainloop: while(creasesCopy.length >2){
         var minAngle = Math.min(...sectorsCopy)
         for(i=0;i<sectorsCopy.length;i++){
+            if(sectorsCopy.length != creasesCopy.length){console.log(vertex,sectorsCopy,creasesCopy); throw new Error("sectors and creases are different")}
             if(eq(sectorsCopy[i],minAngle)){
-                if(creasesCopy[i].mv != creasesCopy[i!=0? i-1 : creasesCopy.length-1].mv | creasesCopy[i].mv == 'A'){
+                if(creasesCopy[i].mv != creasesCopy[i!=0? i-1 : creasesCopy.length-1].mv | creasesCopy[i].mv == 'A' | creasesCopy[i].mv == 'E'){
                     creasesCopy.splice(i,1); creasesCopy.splice(i!=0? i-1 : creasesCopy.length-1 , 1) //delete both creases from the sector
-                    sectorsCopy[i+1] += sectorsCopy[i!=0? i-1 : sectorsCopy.length-1] - sectorsCopy[i] //combine neighboring sectors
+                    sectorsCopy[i!=sectorsCopy.length-1?i+1 : 0] += sectorsCopy[i!=0? i-1 : sectorsCopy.length-1] - sectorsCopy[i] //combine neighboring sectors
                     sectorsCopy.splice(i,1); sectorsCopy.splice(i!=0? i-1 : sectorsCopy.length-1 , 1) //delete this sector and one neighbor
                     continue mainloop
-                }
-                else{
+                }else{
                     violations = true
                 }
-            }
+            }            
         }
         if(violations){
             vertex.angularFoldable = false; vertex.reason = "big little big lemma";return false
@@ -1047,6 +1047,7 @@ function isVertexFlatFoldable(vertex){
     }
     violations = false
 
+    /*
     for(i=0; i<vertex.sectors.length; i++){
         if(vertex.sectors[i]<vertex.sectors[i!=0?i-1:vertex.sectors.length-1] - 10**-10 &
             vertex.sectors[i]<vertex.sectors[i!=vertex.sectors.length-1?i+1:0] - 10**-10 &
@@ -1056,6 +1057,7 @@ function isVertexFlatFoldable(vertex){
             vertex.angularFoldable = false; vertex.reason = "big little big lemma";return false
         }
     }
+    */
     
     //if the vertex is on the edge
     if(eq(vertex.x*vertex.y*(1-vertex.x)*(1-vertex.y),0)){vertex.angularFoldable=true; vertex.reason = "on the edge"; return true;}
