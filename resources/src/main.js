@@ -54,7 +54,7 @@ const MAIN = {
         console.log('hi from startup')
         document.getElementById("fold_button").onclick = () => {
             console.log('hi from compute_cells')
-            console.log(process_file('bruh'))
+            console.log(MAIN.process_file('bruh'))
             console.log(currentcp.CP)
             //here, convert currentcp.CP into a FOLD object
 
