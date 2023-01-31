@@ -113,6 +113,7 @@ function start(input){
 }
 function testGlobalFlatFoldability(currentcp){
     document.getElementById("fold_button").click()
+    return foldable
     return true
     //convert current cp to a FOLD (json object). Don't bypass the import functions, convert to fold and parse it again
     //run the FOLD object through flat folder's functions. extract solutions

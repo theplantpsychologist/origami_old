@@ -206,8 +206,10 @@ const MAIN = {
         NOTE.time("Solve completed");
         NOTE.count(n, "folded states");
         NOTE.lap();
-        console.log(n,"folded states AND WE'RE DONE WOOOOO");
-        return n
+        console.log(n!=0,"folded states AND WE'RE DONE WOOOOO");
+        
+        foldable = n!=0
+        return n!=0
 
         // const num_states = document.getElementById("num_states");
         // num_states.textContent = `(Found ${n} state${(n == 1) ? "" : "s"})`;
