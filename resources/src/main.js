@@ -67,10 +67,10 @@ const MAIN = {
     process_file: (e) => {
         NOTE.clear_log();
         NOTE.start("*** Starting File Import ***");
-        const doc = e.target.result;
-        const file_name = document.getElementById("import").value;
-        const parts = file_name.split(".");
-        const type = parts[parts.length - 1].toLowerCase();
+        const doc = e//.target.result;
+        const file_name = "file"//document.getElementById("import").value;
+        //const parts = file_name.split(".");
+        const type = 'fold' //parts[parts.length - 1].toLowerCase();
         NOTE.time(`Importing from file ${file_name}`);
         const [V, VV, EV, EA, EF, FV] = IO.doc_type_2_V_VV_EV_EA_EF_FV(doc, type);
         if (V == undefined) { return; }
