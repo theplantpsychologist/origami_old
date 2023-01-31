@@ -481,7 +481,7 @@ function downloadFOLD(cp){
     contents = JSON.stringify(cpobject)
     var element = document.createElement('a');
     element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(contents));
-    element.setAttribute('download', 'output.cp');
+    element.setAttribute('download', 'output.fold');
     element.style.display = 'none';
     document.body.appendChild(element);
     element.click();
