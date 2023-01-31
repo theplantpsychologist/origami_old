@@ -43,18 +43,22 @@ const MAIN = {
         //     el.textContent = val;
         //     limit_select.appendChild(el);
         // }
-        document.getElementById("import").onchange = (e) => {
-            console.log('hi')
-            if (e.target.files.length > 0) {
-                const file_reader = new FileReader();
-                file_reader.onload = MAIN.process_file;
-                file_reader.readAsText(e.target.files[0]);
-            }
-        };
+        // document.getElementById("import").onchange = (e) => {
+        //     console.log('hi')
+        //     if (e.target.files.length > 0) {
+        //         const file_reader = new FileReader();
+        //         file_reader.onload = MAIN.process_file;
+        //         file_reader.readAsText(e.target.files[0]);
+        //     }
+        // };
         console.log('hi from startup')
         document.getElementById("fold_button").onclick = () => {
             console.log('hi from compute_cells')
+            console.log(process_file('bruh'))
             console.log(currentcp.CP)
+            //here, convert currentcp.CP into a FOLD object
+
+
             MAIN.compute_cells(FOLD);
         };
         // document.getElementById("side").onclick = (e) => {
@@ -66,6 +70,8 @@ const MAIN = {
         NOTE.end();
     },
     process_file: (e) => {
+        return e + 'hi'
+
         NOTE.clear_log();
         NOTE.start("*** Starting File Import ***");
         const doc = e.target.result;
