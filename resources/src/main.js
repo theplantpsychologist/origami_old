@@ -15,8 +15,6 @@ import { SOLVER } from "./solver.js";
 // const X = require("./convertion.js")
 // const GUI = require("./gui.js")
 // const SOLVER = require("./solver.js")
-console.log('hello from main.js')
-
 
 window.onload = () => { MAIN.startup(); };  // entry point
 
