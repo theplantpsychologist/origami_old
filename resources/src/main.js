@@ -83,6 +83,7 @@ const MAIN = {
         const type = 'fold' //parts[parts.length - 1].toLowerCase();
         console.log(e)
         NOTE.time(`Importing from file ${file_name}`);
+        console.log(IO.doc_type_2_V_VV_EV_EA_EF_FV(e, type))
         const [V, VV, EV, EA, EF, FV] = IO.doc_type_2_V_VV_EV_EA_EF_FV(e, type);
         if (V == undefined) { return; }
         const VK = X.V_VV_EV_EA_2_VK(V, VV, EV, EA);
