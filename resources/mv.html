@@ -83,7 +83,10 @@
         <script src="mv.js"></script>
         <script src="example.js"></script>
         <script type = "module" src="./src/main.js"></script>
-        <script type = "module" src="./src/main.js">import {testGlobalFlatFoldability} from "./src/main.js" </script>
+        <script type = "module" src="./src/main.js">
+            import {test} from "./src/main.js";
+            window.testGlobalFlatFoldability = test; 
+        </script>
 
         <script type="text/javascript" data-paper-ignore="true">
             paper.setup(document.getElementById("square"))

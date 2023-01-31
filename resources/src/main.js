@@ -9,7 +9,7 @@ import { SOLVER } from "./solver.js";
 
 window.onload = () => { MAIN.startup(); };  // entry point
 
-export function testGlobalFlatFoldability(cp){
+export function test(cp){
     console.log('hi from compute_cells')
     var vertices_coords = [[0,0],[1,1],[0,1]]
     var edges_vertices = [[0,1],[1,2],[0,2]]
@@ -24,7 +24,7 @@ export function testGlobalFlatFoldability(cp){
         "edges_assignment": edges_assignment,
         "faces_vertices":faces_vertices
     }
-    MAIN.compute_cells(MAIN.process_file(cpobject));
+    return MAIN.compute_cells(MAIN.process_file(cpobject));
 }
 const MAIN = {
     startup: () => {
@@ -175,7 +175,7 @@ const MAIN = {
         //     GUI.update_text(FOLD, CELL);
         //     NOTE.end();
         // };
-        window.setTimeout(MAIN.compute_constraints, 0, FOLD, CELL);
+        return window.setTimeout(MAIN.compute_constraints, 0, FOLD, CELL);
     },
     compute_constraints: (FOLD, CELL) => {
         const {V, Vf, EV, EA, EF, FV, Ff} = FOLD;
@@ -208,7 +208,7 @@ const MAIN = {
         // NOTE.time("Updating cell-face listeners");
         // //GUI.update_cell_face_listeners(FOLD, CELL, BF, BT);
         NOTE.lap();
-        window.setTimeout(MAIN.compute_states, 0, FOLD, CELL, BF, BT);
+        return window.setTimeout(MAIN.compute_states, 0, FOLD, CELL, BF, BT);
     },
     compute_states: (FOLD, CELL, BF, BT) => {
         const {V, Vf, EV, EA, EF, FV, Ff} = FOLD;
