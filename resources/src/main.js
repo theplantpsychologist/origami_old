@@ -54,10 +54,10 @@ const MAIN = {
         console.log('hi from startup')
         document.getElementById("fold_button").onclick = () => {
             console.log('hi from compute_cells')
-            vertices_coords = []
-            edges_vertices = []
-            edges_assignment = []
-            faces_vertices = []
+            var vertices_coords = []
+            var edges_vertices = []
+            var edges_assignment = []
+            var faces_vertices = []
             cpobject = {
                 "vertices_coords":vertices_coords,
                 "edges_vertices": edges_vertices,
