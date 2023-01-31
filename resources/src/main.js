@@ -12,24 +12,6 @@ window.onload = () => { MAIN.startup(); };  // entry point
 
 export const MAIN = {
     test:(cp) =>{
-        //hard coded testing examples
-        // var vertices_coords = [[0,0],[1,1],[0,1]]
-        // var edges_vertices = [[0,1],[1,2],[0,2]]
-        // var edges_assignment = ["B","B","B"]
-        // var faces_vertices = [[0,1,2]]
-
-        // var cpobject = {
-        //     "frame_parent" : 0,
-        //     "frame_frameInherit" : false,
-        //     "vertices_coords" : [ [ 50.00000000000002, -200.0 ], [ 50.0, 200.0 ], [ -50.0, 200.0 ], [ -49.99999999999998, -200.0 ], [ -200.0, -200.0 ], [ 200.0, 200.0 ], [ 200.0, -200.0 ], [ -200.0, 200.0 ] ],
-        //     "edges_vertices" : [ [ 0, 1 ], [ 2, 3 ], [ 4, 3 ], [ 5, 1 ], [ 0, 3 ], [ 2, 1 ], [ 6, 5 ], [ 4, 7 ], [ 6, 0 ], [ 7, 2 ] ],
-        //     "edges_assignment" : [ "M", "V", "B", "B", "B", "B", "B", "B", "B", "B" ],
-        //     "edges_foldAngle" : [ 180.0, -180.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ],
-        //     "faces_vertices" : [ [ 0, 1, 5, 6 ], [ 0, 3, 2, 1 ], [ 2, 3, 4, 7 ] ],
-        //     "file_spec" : 1.1,
-        //     "file_creator" : "oriedita"
-        // }
-        0
         // var vertices_coords = []
         // var edges_vertices = []
         // var edges_assignment = []
