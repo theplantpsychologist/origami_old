@@ -259,6 +259,6 @@ export const IO = {    // INPUT-OUTPUT
         //         EA[i] = "B";
         //     }
         // }
-        // return [V, VV, EV, EA, EF, FV];
+        return [V, VV, EV, EA, EF, FV];
     },
 };
