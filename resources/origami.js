@@ -325,7 +325,7 @@ function readCpFile(file){
     }}
     return new CP(vertices,creases)
 }
-function download(CP) {
+function downloadCP(cp) {
     //https://ourcodeworld.com/articles/read/189/how-to-create-a-file-and-generate-a-download-with-javascript-in-the-browser-without-a-server
     function convertx(x){
         return x*400 - 200
@@ -334,7 +334,7 @@ function download(CP) {
         return y*400 - 200
     }
     contents = ''
-    for(const crease of CP.creases){
+    for(const crease of cp.creases){
         var newline = ''
         if(crease.mv == 'E'){newline += '1 '}
         else if(crease.mv == 'M'){newline += '2 '}
@@ -444,6 +444,48 @@ function displayCp(CP,x1,y1,x2,y2){ //so you can position where to draw it
     cp.addChild(creaselines)
     cp.addChild(errorcircles)
     return cp
+}
+function convertFOLD(cp) {
+    var vertices_coords = []
+    var edges_vertices = []
+    var edges_assignment = []
+    var faces_vertices = []
+    for(const face of currentcp.CP.assignedFaces){
+        var facevertices = []
+        for(const vertex of face.vertices){
+            var index = vertices_coords.findIndex(item => item[0]==vertex.x & item[1]==vertex.y)
+            if(index == -1){index = vertices_coords.length; vertices_coords.push([vertex.x,vertex.y])}
+            facevertices.push(index)
+        }
+        for(const crease of face.creases){
+            var index1 = vertices_coords.findIndex(item => item[0]==crease.vertices[0].x & item[1]==crease.vertices[0].y)
+            var index2 = vertices_coords.findIndex(item => item[0]==crease.vertices[1].x & item[1]==crease.vertices[1].y)
+            if(edges_vertices.findIndex(item =>haveSameContents(item,[index1,index2]))== -1){
+                if(crease.mv == 'A' | crease.mv == 'E'){edges_assignment.push("B")}
+                else{edges_assignment.push(crease.mv)}
+                edges_vertices.push([index1,index2])
+            }
+        }
+        faces_vertices.push(facevertices)
+    }
+    var cpobject = {
+        "vertices_coords":vertices_coords,
+        "edges_vertices": edges_vertices,
+        "edges_assignment": edges_assignment,
+        "faces_vertices":faces_vertices
+    }
+    return cpobject
+}
+function downloadFOLD(cp){
+    cpobject = convertFOLD(cp)
+    contents = JSON.stringify(cpobject)
+    var element = document.createElement('a');
+    element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(contents));
+    element.setAttribute('download', 'output.cp');
+    element.style.display = 'none';
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
 }
 
 //basic operations
@@ -1118,8 +1160,4 @@ function displayStacks(xc,yc,scale,cp){
     }
 }
 
-
-
-
-//=====flat folder crossover
 
