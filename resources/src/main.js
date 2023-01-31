@@ -119,9 +119,7 @@ export const MAIN = {
         //const file_name = document.getElementById("import").value;
         //const parts = file_name.split(".");
         //const type = parts[parts.length - 1].toLowerCase();
-        console.log(e)
         //NOTE.time(`Importing object`);
-        console.log(IO.doc_type_2_V_VV_EV_EA_EF_FV(e))
         const [V, VV, EV, EA, EF, FV] = IO.doc_type_2_V_VV_EV_EA_EF_FV(e);
         if (V == undefined) { return; }
         const VK = X.V_VV_EV_EA_2_VK(V, VV, EV, EA);
@@ -165,7 +163,7 @@ export const MAIN = {
         const {V, Vf, EV, EF, FV, Ff} = FOLD;
         const L = EV.map((P) => M.expand(P, Vf));
         const eps = M.min_line_length(L) / M.EPS;
-        NOTE.time(`Using eps ${eps} from min line length ${eps*M.EPS}`);
+        // NOTE.time(`Using eps ${eps} from min line length ${eps*M.EPS}`);
         //NOTE.time("Constructing points and segments from edges");
         const [P, SP, SE] = X.L_2_V_EV_EL(L, eps);
         // NOTE.annotate(P, "points_coords");
@@ -186,7 +184,7 @@ export const MAIN = {
         const CELL = {P, SP, SE, CP, SC, CF, FC};
         // NOTE.time("Updating cell");
         // GUI.update_cell(FOLD, CELL);
-       NOTE.lap();
+    //    NOTE.lap();
         // document.getElementById("text").onchange = (e) => {
         //     NOTE.start("Toggling Text");
         //     GUI.update_text(FOLD, CELL);
@@ -197,7 +195,7 @@ export const MAIN = {
     compute_constraints: (FOLD, CELL) => {
         const {V, Vf, EV, EA, EF, FV, Ff} = FOLD;
         const {P, SP, SE, CP, SC, CF, FC} = CELL;
-        NOTE.time("*** Computing constraints ***");
+        // NOTE.time("*** Computing constraints ***");
         //NOTE.time("Computing edge-edge overlaps");
         const ExE = X.SE_2_ExE(SE);
         // NOTE.count(ExE, "edge-edge adjacencies");
@@ -224,13 +222,13 @@ export const MAIN = {
         // NOTE.lap();
         // NOTE.time("Updating cell-face listeners");
         // //GUI.update_cell_face_listeners(FOLD, CELL, BF, BT);
-        NOTE.lap();
+        // NOTE.lap();
         return MAIN.compute_states(FOLD, CELL, BF, BT);
     },
     compute_states: (FOLD, CELL, BF, BT) => {
         const {V, Vf, EV, EA, EF, FV, Ff} = FOLD;
         const {P, SP, SE, CP, SC, CF, FC} = CELL;
-        NOTE.time("*** Computing states ***");
+        // NOTE.time("*** Computing states ***");
         const BA0 = X.EF_EA_Ff_BF_2_BA0(EF, EA, Ff, BF);
         const val = 1 //document.getElementById("limit_select").value;
         const lim = (val == "all") ? Infinity : +val;
@@ -238,7 +236,7 @@ export const MAIN = {
         const n = (GA == undefined) ? 0 : GA.reduce((s, A) => {
             return s*BigInt(A.length);
         }, BigInt(1));
-        NOTE.time("Solve completed");
+        // NOTE.time("Solve completed");
         NOTE.count(n, "folded states");
         NOTE.lap();
         return n!=0
