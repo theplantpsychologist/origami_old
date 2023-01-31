@@ -450,7 +450,7 @@ function convertFOLD(cp) {
     var edges_vertices = []
     var edges_assignment = []
     var faces_vertices = []
-    for(const face of currentcp.CP.assignedFaces){
+    for(const face of cp.assignedFaces){
         var facevertices = []
         for(const vertex of face.vertices){
             var index = vertices_coords.findIndex(item => item[0]==vertex.x & item[1]==vertex.y)

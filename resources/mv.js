@@ -135,10 +135,6 @@ function start(input){
 
 function dfs(currentcp){
     while(!currentcp.done){
-        console.log(currentcp.CP.assignedFaces)
-        assignFaces(currentcp.CP.faces,currentcp.CP.faces[0])
-        console.log(currentcp.CP.assignedFaces)
-        console.log(main.test(currentcp.CP))
         if(main.test(currentcp.CP)){
             console.log('====PASSED GLOBAL FLAT FOLDABILITY=======')
             currentcp = yes(currentcp)
