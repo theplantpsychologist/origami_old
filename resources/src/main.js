@@ -30,7 +30,7 @@ const MAIN = {
     startup: () => {
         NOTE.clear_log();
         NOTE.start("*** Starting Flat-Folder ***");
-        NOTE.time("Initializing interface");
+        //NOTE.time("Initializing interface");
         const [b, s] = [50, SVG.SCALE];
         const main = document.getElementById("main");
         // for (const [k, v] of Object.entries({
@@ -69,54 +69,54 @@ const MAIN = {
         //     }
         // };
         console.log('hi from startup')
-        document.getElementById("fold_button").onclick = () => {
-            console.log('hi from compute_cells')
-            var vertices_coords = [[0,0],[1,1],[0,1]]
-            var edges_vertices = [[0,1],[1,2],[0,2]]
-            var edges_assignment = ["B","B","B"]
-            var faces_vertices = [[0,1,2]]
-            for(const face of currentcp.CP.assignedFaces){
-                1+1
-            }
-            var cpobject = {
-                "vertices_coords":vertices_coords,
-                "edges_vertices": edges_vertices,
-                "edges_assignment": edges_assignment,
-                "faces_vertices":faces_vertices
-            }
-            MAIN.compute_cells(MAIN.process_file(cpobject));
-        };
+        // document.getElementById("fold_button").onclick = () => {
+        //     console.log('hi from compute_cells')
+        //     var vertices_coords = [[0,0],[1,1],[0,1]]
+        //     var edges_vertices = [[0,1],[1,2],[0,2]]
+        //     var edges_assignment = ["B","B","B"]
+        //     var faces_vertices = [[0,1,2]]
+        //     for(const face of currentcp.CP.assignedFaces){
+        //         1+1
+        //     }
+        //     var cpobject = {
+        //         "vertices_coords":vertices_coords,
+        //         "edges_vertices": edges_vertices,
+        //         "edges_assignment": edges_assignment,
+        //         "faces_vertices":faces_vertices
+        //     }
+        //     MAIN.compute_cells(MAIN.process_file(cpobject));
+        // };
         // document.getElementById("side").onclick = (e) => {
         //     const side = ((e.target.value == "+") ? "-" : "+");
         //     e.target.setAttribute("value", side);
         // };
-        NOTE.time("Computing constraint implication maps");
+        //NOTE.time("Computing constraint implication maps");
         CON.build();
         NOTE.end();
     },
     process_file: (e) => {
         //directly pass in the cp as a json object
         NOTE.clear_log();
-        NOTE.start("*** Starting File Import ***");
+        //NOTE.start("*** Starting File Import ***");
         //const file_name = document.getElementById("import").value;
         //const parts = file_name.split(".");
         //const type = parts[parts.length - 1].toLowerCase();
         console.log(e)
-        NOTE.time(`Importing object`);
+        //NOTE.time(`Importing object`);
         console.log(IO.doc_type_2_V_VV_EV_EA_EF_FV(e))
         const [V, VV, EV, EA, EF, FV] = IO.doc_type_2_V_VV_EV_EA_EF_FV(e);
         if (V == undefined) { return; }
         const VK = X.V_VV_EV_EA_2_VK(V, VV, EV, EA);
-        NOTE.annotate(V, "vertices_coords");
-        NOTE.annotate(EV, "edges_vertices");
-        NOTE.annotate(EA, "edges_assignments");
-        NOTE.annotate(EF, "edges_faces");
-        NOTE.annotate(FV, "faces_vertices");
+        // NOTE.annotate(V, "vertices_coords");
+        // NOTE.annotate(EV, "edges_vertices");
+        // NOTE.annotate(EA, "edges_assignments");
+        // NOTE.annotate(EF, "edges_faces");
+        // NOTE.annotate(FV, "faces_vertices");
         const [Pf, Ff] = X.V_FV_EV_EA_2_Vf_Ff(V, FV, EV, EA);
         const Vf = M.normalize_points(Pf);
-        NOTE.annotate(Vf, "vertices_coords_folded");
-        NOTE.annotate(Ff, "faces_flip");
-        NOTE.lap();
+        // NOTE.annotate(Vf, "vertices_coords_folded");
+        // NOTE.annotate(Ff, "faces_flip");
+        // NOTE.lap();
         const FOLD = {V, Vf, VK, EV, EA, EF, FV, Ff};        //IMPORTANT                   <======================
 
         return FOLD
@@ -139,37 +139,37 @@ const MAIN = {
         // document.getElementById("fold_button").onclick = () => {
         //     MAIN.compute_cells(FOLD);
         // };
-        // NOTE.lap();
+         NOTE.lap();
         // NOTE.end();
     },
     compute_cells: (FOLD) => {
         console.log('folding')
-        NOTE.start("*** Computing cell graph ***");
+        //NOTE.start("*** Computing cell graph ***");
         const {V, Vf, EV, EF, FV, Ff} = FOLD;
         const L = EV.map((P) => M.expand(P, Vf));
         const eps = M.min_line_length(L) / M.EPS;
         NOTE.time(`Using eps ${eps} from min line length ${eps*M.EPS}`);
-        NOTE.time("Constructing points and segments from edges");
+        //NOTE.time("Constructing points and segments from edges");
         const [P, SP, SE] = X.L_2_V_EV_EL(L, eps);
-        NOTE.annotate(P, "points_coords");
-        NOTE.annotate(SP, "segments_points");
-        NOTE.lap();
-        NOTE.time("Constructing cells from segments");
+        // NOTE.annotate(P, "points_coords");
+        // NOTE.annotate(SP, "segments_points");
+        // NOTE.lap();
+        // NOTE.time("Constructing cells from segments");
         const [,CP] = X.V_EV_2_VV_FV(P, SP);
-        NOTE.annotate(CP, "cells_points");
-        NOTE.lap();
-        NOTE.time("Computing segments_cells");
+        // NOTE.annotate(CP, "cells_points");
+        // NOTE.lap();
+        // NOTE.time("Computing segments_cells");
         const SC = X.EV_FV_2_EF(SP, CP);
-        NOTE.annotate(SC, "segments_cells");
-        NOTE.lap();
-        NOTE.time("Making face-cell maps");
+        // NOTE.annotate(SC, "segments_cells");
+        // NOTE.lap();
+        // NOTE.time("Making face-cell maps");
         const [CF, FC] = X.EF_FV_SP_SE_CP_SC_2_CF_FC(EF, FV, SP, SE, CP, SC);
-        NOTE.count(CF, "face-cell adjacencies");
-        NOTE.lap();
+        // NOTE.count(CF, "face-cell adjacencies");
+        // NOTE.lap();
         const CELL = {P, SP, SE, CP, SC, CF, FC};
         // NOTE.time("Updating cell");
         // GUI.update_cell(FOLD, CELL);
-        NOTE.lap();
+       NOTE.lap();
         // document.getElementById("text").onchange = (e) => {
         //     NOTE.start("Toggling Text");
         //     GUI.update_text(FOLD, CELL);
@@ -181,32 +181,32 @@ const MAIN = {
         const {V, Vf, EV, EA, EF, FV, Ff} = FOLD;
         const {P, SP, SE, CP, SC, CF, FC} = CELL;
         NOTE.time("*** Computing constraints ***");
-        NOTE.time("Computing edge-edge overlaps");
+        //NOTE.time("Computing edge-edge overlaps");
         const ExE = X.SE_2_ExE(SE);
-        NOTE.count(ExE, "edge-edge adjacencies");
-        NOTE.lap();
-        NOTE.time("Computing edge-face overlaps");
+        // NOTE.count(ExE, "edge-edge adjacencies");
+        // NOTE.lap();
+        // NOTE.time("Computing edge-face overlaps");
         const ExF = X.SE_CF_SC_2_ExF(SE, CF, SC);
-        NOTE.count(ExF, "edge-face adjacencies");
-        NOTE.lap();
-        NOTE.time("Computing variables");
+        // NOTE.count(ExF, "edge-face adjacencies");
+        // NOTE.lap();
+        // NOTE.time("Computing variables");
         const BF = X.CF_2_BF(CF);
-        NOTE.annotate(BF, "variables_faces");
-        NOTE.lap();
-        NOTE.time("Computing transitivity constraints");
+        // NOTE.annotate(BF, "variables_faces");
+        // NOTE.lap();
+        // NOTE.time("Computing transitivity constraints");
         const BT3 = X.FC_CF_BF_2_BT3(FC, CF, BF);
-        NOTE.count(BT3, "initial transitivity", 3);
-        NOTE.lap();
-        NOTE.time("Computing non-transitivity constraints");
+        // NOTE.count(BT3, "initial transitivity", 3);
+        // NOTE.lap();
+        // NOTE.time("Computing non-transitivity constraints");
         const [BT0, BT1, BT2] = X.BF_EF_ExE_ExF_BT3_2_BT0_BT1_BT2(BF, EF, ExE, ExF, BT3);
-        NOTE.count(BT0, "taco-taco", 6);
-        NOTE.count(BT1, "taco-tortilla", 3);
-        NOTE.count(BT2, "tortilla-tortilla", 2);
-        NOTE.count(BT3, "independent transitivity", 3);
+        // NOTE.count(BT0, "taco-taco", 6);
+        // NOTE.count(BT1, "taco-tortilla", 3);
+        // NOTE.count(BT2, "tortilla-tortilla", 2);
+        // NOTE.count(BT3, "independent transitivity", 3);
         const BT = BF.map((F,i) => [BT0[i], BT1[i], BT2[i], BT3[i]]);
-        NOTE.lap();
-        NOTE.time("Updating cell-face listeners");
-        //GUI.update_cell_face_listeners(FOLD, CELL, BF, BT);
+        // NOTE.lap();
+        // NOTE.time("Updating cell-face listeners");
+        // //GUI.update_cell_face_listeners(FOLD, CELL, BF, BT);
         NOTE.lap();
         window.setTimeout(MAIN.compute_states, 0, FOLD, CELL, BF, BT);
     },
