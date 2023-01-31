@@ -12,11 +12,18 @@ window.onload = () => { MAIN.startup(); };  // entry point
 
 export const MAIN = {
     test:(cp) =>{
-        console.log('hi from compute_cells')
-        var vertices_coords = [[0,0],[1,1],[0,1]]
-        var edges_vertices = [[0,1],[1,2],[0,2]]
-        var edges_assignment = ["B","B","B"]
-        var faces_vertices = [[0,1,2]]
+        //hard coded testing examples
+        // var vertices_coords = [[0,0],[1,1],[0,1]]
+        // var edges_vertices = [[0,1],[1,2],[0,2]]
+        // var edges_assignment = ["B","B","B"]
+        // var faces_vertices = [[0,1,2]]
+
+        var vertices_coords = [[0,0],[0,1],[0.4,0],[0.4,1],[0.6,0],[0.6,1],[1,0],[1,1]]
+        var edges_vertices = [[2,3],[4,5],[3,5],[2,4],[0,1],[0,2],[1,3],[4,6],[5,7]]
+        var edges_assignment = ["M","M","B","B","B","B","B","B","B","B"]
+        var faces_vertices = [[0,1,2,3,4],[2,3,4,5],[4,5,6,7]]
+
+
         for(const face of currentcp.CP.assignedFaces){
             1+1
         }
@@ -31,10 +38,8 @@ export const MAIN = {
 
 
     startup: () => {
-
-        ooga = 'booga'
         NOTE.clear_log();
-        NOTE.start("*** Starting Flat-Folder ***");
+        NOTE.start("*** Flat-Folder is online ***");
         //NOTE.time("Initializing interface");
         const [b, s] = [50, SVG.SCALE];
         const main = document.getElementById("main");
@@ -73,7 +78,6 @@ export const MAIN = {
         //         file_reader.readAsText(e.target.files[0]);
         //     }
         // };
-        console.log('hi from startup')
         // document.getElementById("fold_button").onclick = () => {
         //     console.log('hi from compute_cells')
         //     var vertices_coords = [[0,0],[1,1],[0,1]]
@@ -100,6 +104,8 @@ export const MAIN = {
         NOTE.end();
     },
     process_file: (e) => {
+        NOTE.start("*** Starting Flat-Folder ***");
+        NOTE.end()
         //directly pass in the cp as a json object
         NOTE.clear_log();
         //NOTE.start("*** Starting File Import ***");
@@ -144,11 +150,10 @@ export const MAIN = {
         // document.getElementById("fold_button").onclick = () => {
         //     MAIN.compute_cells(FOLD);
         // };
-         NOTE.lap();
+        //  NOTE.lap();
         // NOTE.end();
     },
     compute_cells: (FOLD) => {
-        console.log('folding')
         //NOTE.start("*** Computing cell graph ***");
         const {V, Vf, EV, EF, FV, Ff} = FOLD;
         const L = EV.map((P) => M.expand(P, Vf));
@@ -229,11 +234,7 @@ export const MAIN = {
         NOTE.time("Solve completed");
         NOTE.count(n, "folded states");
         NOTE.lap();
-        console.log(n!=0,"folded states AND WE'RE DONE WOOOOO");
-
-        foldable = n!=0
         return n!=0
-
         // const num_states = document.getElementById("num_states");
         // num_states.textContent = `(Found ${n} state${(n == 1) ? "" : "s"})`;
         // if (n > 0) {
