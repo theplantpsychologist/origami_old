@@ -51,6 +51,10 @@ const MAIN = {
                 file_reader.readAsText(e.target.files[0]);
             }
         };
+        console.log('hi')
+        document.getElementById("fold_button").onclick = () => {
+            MAIN.compute_cells(FOLD);
+        };
         // document.getElementById("side").onclick = (e) => {
         //     const side = ((e.target.value == "+") ? "-" : "+");
         //     e.target.setAttribute("value", side);
@@ -80,7 +84,7 @@ const MAIN = {
         NOTE.annotate(Vf, "vertices_coords_folded");
         NOTE.annotate(Ff, "faces_flip");
         NOTE.lap();
-        const FOLD = {V, Vf, VK, EV, EA, EF, FV, Ff};
+        const FOLD = {V, Vf, VK, EV, EA, EF, FV, Ff};        //IMPORTANT                   <======================
         NOTE.time("Drawing flat");
         GUI.update_flat(FOLD);
         NOTE.time("Drawing cell");
@@ -104,6 +108,7 @@ const MAIN = {
         NOTE.end();
     },
     compute_cells: (FOLD) => {
+        console.log('folding')
         NOTE.start("*** Computing cell graph ***");
         const {V, Vf, EV, EF, FV, Ff} = FOLD;
         const L = EV.map((P) => M.expand(P, Vf));
