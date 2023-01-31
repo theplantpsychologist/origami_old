@@ -85,8 +85,8 @@ const MAIN = {
         //const type = parts[parts.length - 1].toLowerCase();
         console.log(e)
         NOTE.time(`Importing object`);
-        console.log(IO.FOLD_2_V_EV_EA_VV_FV(e))
-        const [V, VV, EV, EA, EF, FV] = IO.FOLD_2_V_EV_EA_VV_FV(e);
+        console.log(IO.doc_type_2_V_VV_EV_EA_EF_FV(e))
+        const [V, VV, EV, EA, EF, FV] = IO.doc_type_2_V_VV_EV_EA_EF_FV(e);
         if (V == undefined) { return; }
         const VK = X.V_VV_EV_EA_2_VK(V, VV, EV, EA);
         NOTE.annotate(V, "vertices_coords");
