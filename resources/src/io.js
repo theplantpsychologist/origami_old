@@ -236,22 +236,23 @@ export const IO = {    // INPUT-OUTPUT
             }
         };
         if (FV == undefined) {
-            if (document.getElementById("side").value == "+") {
-                EA = flip_EA(EA);
-            } else {
-                V = flip_Y(V);
-            }
+            EA = flip_EA(EA);
+            // if (document.getElementById("side").value == "+") {
+            //     EA = flip_EA(EA);
+            // } else {
+            //     V = flip_Y(V);
+            // }
             [VV, FV] = X.V_EV_2_VV_FV(V, EV);
         } else {
             if (M.polygon_area2(M.expand(FV[0], V)) < 0) {
                 EA = flip_EA(EA);
                 reverse_FV(FV);
             }
-            if (document.getElementById("side").value == "-") {
-                EA = flip_EA(EA);
-                reverse_FV(FV);
-                V = flip_Y(V);
-            }
+            // if (document.getElementById("side").value == "-") {
+            //     EA = flip_EA(EA);
+            //     reverse_FV(FV);
+            //     V = flip_Y(V);
+            // }
         }
         const EF = X.EV_FV_2_EF(EV, FV);
         for (const [i, F] of EF.entries()) {    // boundary edge assignment
