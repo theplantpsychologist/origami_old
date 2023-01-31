@@ -146,15 +146,15 @@ function dfs(currentcp){
     }
     return currentcp
 }
-// function findall(currentcp){
-//     var allSolutions = []
-//     currentcp = dfs(currentcp)
-//     if(currentcp.done == 'success'){allSolutions.push(currentcp)}
-//     if(currentcp.done == 'fail'){return allSolutions}
-// }
-function nexSolution(currentcp){
+function nextSolution(currentcp){
     currentcp = no(currentcp)
     return dfs(currentcp)
+}
+function findall(currentcp){
+    var allSolutions = []
+    currentcp = dfs(currentcp)
+    if(currentcp.done == 'success'){allSolutions.push(currentcp)}
+    if(currentcp.done == 'fail'){return allSolutions}
 }
 
 function yes(currentcp){
