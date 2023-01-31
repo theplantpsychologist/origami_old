@@ -19,7 +19,7 @@ export const MAIN = {
         // var faces_vertices = [[0,1,2]]
 
         var vertices_coords = [[0,0],[0,1],[0.4,0],[0.4,1],[0.6,0],[0.6,1],[1,0],[1,1]]
-        var edges_vertices = [[2,3],[4,5],[3,5],[2,4],[0,1],[0,2],[1,3],[4,6],[5,7]]
+        var edges_vertices = [[2,3],[4,5],[3,5],[2,4],[0,1],[1,3],[4,6],[5,7]]
         var edges_assignment = ["M","M","B","B","B","B","B","B","B","B"]
         var faces_vertices = [[0,1,2,3,4],[2,3,4,5],[4,5,6,7]]
 
