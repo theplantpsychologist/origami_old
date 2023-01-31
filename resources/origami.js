@@ -478,6 +478,7 @@ function convertFOLD(cp) {
 }
 function downloadFOLD(cp){
     cpobject = convertFOLD(cp)
+    cpobject['vertices_coords'].forEach((element) => element = [element[0]*400 - 200, element[1]*400 - 200])
     contents = JSON.stringify(cpobject)
     var element = document.createElement('a');
     element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(contents));

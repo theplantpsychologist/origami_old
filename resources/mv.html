@@ -54,9 +54,12 @@
 
         <div>
             <button type = button onclick="currentcp = dfs(currentcp)">Find first solution</button>
+            <button type = button onclick="currentcp = nextSolution(currentcp)">Find next solution</button>
+        </div> 
+        <div>
             <button type = button onclick="downloadCP(currentcp.CP)">Download .cp file</button>
             <button type = button onclick="downloadFOLD(currentcp.CP)">Download .fold file</button>
-        </div> 
+        </div>
         <div>
             <p style="text-align: right;">Is the current cp flat foldable? (for manual solution)</p>
             <button type = button onclick="currentcp = yes(currentcp)" style="float:right; margin-right: 10px;">Yes</button>

@@ -30,7 +30,7 @@ class PotentialCP{
         this.parent = parent
         this.children = []
         this.alive = true //"dies" if its not flat foldable, or if both children are dead
-        this.done = false //break condition for while loop
+        this.done = null //break condition for while loop
     }
     createChild(){
         //we can only have two children because we're only making one decision. There may be more "no brainers" and more
@@ -146,12 +146,22 @@ function dfs(currentcp){
     }
     return currentcp
 }
+// function findall(currentcp){
+//     var allSolutions = []
+//     currentcp = dfs(currentcp)
+//     if(currentcp.done == 'success'){allSolutions.push(currentcp)}
+//     if(currentcp.done == 'fail'){return allSolutions}
+// }
+function nexSolution(currentcp){
+    currentcp = no(currentcp)
+    return dfs(currentcp)
+}
 
 function yes(currentcp){
     console.log("yes")
     if(currentcp.CP.assignedFaces.length == currentcp.CP.faces.length){
         //alert("The cp has been fully assigned")
-        currentcp.done = true
+        currentcp.done = 'success'
         return currentcp
     }
     currentcp = currentcp.createChild()    
@@ -171,7 +181,7 @@ function no(currentcp){
     console.log("no")
     if(currentcp.index == 0) { //alternatively, if currentcp.parent == null
         alert("No solution can be found")
-        currentcp.done = true
+        currentcp.done = 'fail'
         return currentcp
     }
     currentcp.alive = false
