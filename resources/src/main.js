@@ -58,7 +58,7 @@ const MAIN = {
             var edges_vertices = []
             var edges_assignment = []
             var faces_vertices = []
-            cpobject = {
+            var cpobject = {
                 "vertices_coords":vertices_coords,
                 "edges_vertices": edges_vertices,
                 "edges_assignment": edges_assignment,
