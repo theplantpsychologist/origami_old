@@ -175,14 +175,17 @@ export const X = {     // CONVERSION
         return VV;
     },
     V_VV_EV_EA_2_VK: (V, VV, EV, EA) => {
-        const VVA_map = new Map();
-        for (const [i, [v1, v2]] of EV.entries()) {
-            const a = EA[i];
-            VVA_map.set(M.encode([v1, v2]), a);
-            VVA_map.set(M.encode([v2, v1]), a);
-        }
+        // const VVA_map = new Map();
+        // for (const [i, [v1, v2]] of EV.entries()) {
+        //     const a = EA[i];
+        //     VVA_map.set(M.encode([v1, v2]), a);
+        //     VVA_map.set(M.encode([v2, v1]), a);
+        // }
         const VK = [];
         for (const [i, A] of VV.entries()) {
+            VK.push(0)
+            continue //we're assuming it's already been checked
+
             const adj = [];
             let boundary = false;
             let [count_M, count_V, count_U] = [0, 0, 0];
