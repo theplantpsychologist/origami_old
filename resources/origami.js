@@ -133,14 +133,14 @@ class CP {
     }
     
     foldXray(){
-        //assign folded coordinates to vertices
+        //assign folded coordinates to vertices by reflecting each face along its bath back to the starting face
         [this.faces,this.matrix] = findFaces(this.creases)
         var startingFace = this.faces[0] //this is arbitrarily chosen
         const n = this.faces.length
         //bfs throughout the graph to give every face a distance from the starting face
         startingFace.distance = 0;
         startingFace.assigned = true
-        function spread(face){
+        function spread2(face){
             for(const neighbor of face.neighbors){
                 if(['M','V'].includes(face.creases.find(element=>neighbor.creases.includes(element)).mv)){
                     neighbor.assigned = true
@@ -151,11 +151,11 @@ class CP {
             }
             for(const neighbor of face.neighbors){
                 if(neighbor.distance == face.distance+1){
-                    spread(neighbor)
+                    spread2(neighbor)
                 }
             }
         }
-        spread(startingFace)
+        spread2(startingFace)
 
         //now for each face, calculate folded coords by reflecting along the path to starting face
         for(const face of this.faces){
@@ -175,245 +175,8 @@ class CP {
             }
         }
         
-
         //for each face, find the path to the starting face. reset xf = x before doing anything
         //keep reflecting along the path, updating xf until you get get to the starting face
-        this.assignedFaces = []
-        for(const face of this.faces){if(face.assigned){this.assignedFaces.push(face)}}
-    }
-    findStacks1(){
-        this.assignedFaces = []
-        for(const face of this.faces){if(face.assigned){this.assignedFaces.push(face)}}
-
-        //combine folded faces onto each other to create a new graph, the xray map
-        //run an alg similar to face finding but now on the xray map
-        this.stackpoints = []
-        this.stacklines = []
-        for(const face of this.assignedFaces){
-            //transfer vertices
-            for(const vertex of face.vertices){
-                //create a stackpoint where vertex was
-                var newpoint = new Stackpoint(vertex.xf,vertex.yf)
-                var duplicate = false
-                for(const oldpoint of this.stackpoints){
-                    if(eq(oldpoint.xf,newpoint.xf) && eq(oldpoint.yf,newpoint.yf)){duplicate = true; break}
-                }
-                if(duplicate){continue}
-                this.stackpoints.push(newpoint)
-            }
-            //transfer creases
-            for(const crease of face.creases){
-                //create a stack line where the crease was
-                //see if we can reuse existing stackpoints
-                var p1 = null
-                var p2 = null
-                for(const oldpoint of this.stackpoints){
-                    if(eq(oldpoint.xf,crease.vertices[0].xf) && eq(oldpoint.yf,crease.vertices[0].yf)){p1 = oldpoint; continue}
-                    if(eq(oldpoint.xf,crease.vertices[1].xf) && eq(oldpoint.yf,crease.vertices[1].yf)){p2 = oldpoint; continue}
-                }
-                if(p1==null){p1 = new Stackpoint(crease.vertices[0].xf,crease.vertices[0].yf)}
-                if(p2==null){p2 = new Stackpoint(crease.vertices[1].xf,crease.vertices[1].yf)}
-                
-                var newLine = new Stackline(p1,p2)
-                if(eq(p1.xf,1) & eq(p2.xf,1)){
-                    console.log(newLine)}
-
-
-                var duplicate = false
-                for(const oldLine of this.stacklines){
-                    if(oldLine==null){continue}
-                    var commonIndices = haveCommonElement(oldLine.points,newLine.points)
-                    //if they have two vertices in common, just don't even bother with newline
-                    if(commonIndices.length==2){duplicate = true; break}
-                    //if they have only one vertex in common and are colinear (same atan2)
-                    if(commonIndices.length==1){
-                        var p = oldLine.points[commonIndices[0][0]] //the point in common
-                        var a = oldLine.points[commonIndices[0][0]==0?1:0] //oldline's other point
-                        var b = newLine.points[commonIndices[0][1]==0?1:0] //newline's other point
-                        if(eq(Math.atan2(b.yf-p.yf,b.xf-p.xf),Math.atan2(a.yf-p.yf,a.xf-p.xf))){
-                            //then instead of having lines pa and pb, have pa and ab (if a is closer). otherwise have pb and ba
-                            delete(this.stacklines[this.stacklines.indexOf(oldLine)])
-
-                            var closerpoint = Math.abs(a.xf-p.xf)+Math.abs(a.yf-p.yf) < Math.abs(b.xf-p.xf)+Math.abs(b.yf-p.yf) ? a:b
-                            //we can just add the distance instead of uusing distance formula because they are already colinear
-                            var furtherpoint = (a==closerpoint?b:a)
-                            var newLine1 = new Stackline(p,closerpoint)
-                            var newLine2 = new Stackline(closerpoint,furtherpoint)
-                            this.stacklines.push(newLine1,newLine2)
-                            duplicate = true; break
-                        }
-                    }
-                    if(commonIndices.length==0){
-                        //mostly ok except for the case with lines ab and cd, points are colinear and in acbd order
-                        //handle this case now because they are parallel and won't be noticed by the line intersection function
-                        if(eq(Math.abs(Math.atan(oldLine.points[0].yf-oldLine.points[1].yf,oldLine.points[0].xf-oldLine.points[1].xf)),
-                              Math.abs(Math.atan(newLine.points[0].yf-newLine.points[1].yf,newLine.points[0].xf-newLine.points[1].xf))) &
-                              (pointOnLine(oldLine.points[0],newLine) | pointOnLine(oldLine.points[1],newLine)&
-                                pointOnLine(newLine.points[0],oldLine) | pointOnLine(newLine.points[1],oldLine)   ) |
-                              (pointOnLine(newLine.points[0],oldLine) & pointOnLine(newLine.points[1],oldLine)) | 
-                              (pointOnLine(oldLine.points[0],newLine) & pointOnLine(oldLine.points[1],newLine)) ){
-                            //points are colinear. now find order
-                            var fourPoints = [oldLine.points[0],oldLine.points[1],newLine.points[0],newLine.points[1]]
-                            fourPoints.sort((a,b) => (Math.abs(a.xf)+Math.abs(a.yf)) - (Math.abs(b.xf)+Math.abs(b.yf)))
-                            delete(this.stacklines[this.stacklines.indexOf(oldLine)])
-                            this.stacklines.push(new Stackline(fourPoints[0],fourPoints[1]))
-                            this.stacklines.push(new Stackline(fourPoints[1],fourPoints[2]))
-                            this.stacklines.push(new Stackline(fourPoints[2],fourPoints[3]))
-                        }
-                        
-                    }
-                }
-                if(!duplicate){
-                    this.stacklines.push(newLine)
-                }
-            }
-        }
-
-        this.stacklines = this.stacklines.filter(Boolean) //remove the deleted empty ones
-        //now check for intersections that happen not on existing vertices
-        for(const line1 of this.stacklines.slice(0,this.stacklines.length-1)){
-            if(line1==null){continue}
-            for(const line2 of this.stacklines.slice(this.stacklines.indexOf(line1)+1,this.stacklines.length)){
-                if(line2==null | line1 == null){continue}
-                //check for direct duplicates
-                if(haveSameContents(line1.points,line2.points)){
-                    delete(this.stacklines[this.stacklines.indexOf(line1)])
-                    continue
-                }
-
-                var intersection = linesIntersection(...line1.points,...line2.points)
-                if(intersection){
-                    //add the intersection as a new point, if it wasn't there already
-                    duplicate = false
-                    p = new Stackpoint(...intersection)
-                    for(const oldpoint of this.stackpoints){
-                        if(eq(oldpoint.xf,intersection[0]) && eq(oldpoint.yf,intersection[1])){duplicate = true; var p = oldpoint; break}
-                    }
-                    if(!duplicate){var p = new Stackpoint(...intersection);this.stackpoints.push(p);console.log("found new point")}
-
-                    //if p is coincident with an endpoint (T junction), delete the endpoint and set p as the new endpoint
-                    //if p is not coincident with an endpoint, delete crease and replace with 2
-                    for(const line of [line1,line2]){
-                        //if the intersection was on point 1
-                        
-/*
-                        if(p.x == line.points[0].xf & p.y == line.points[0].yf & line.points[0]!=p){
-                            //replace the old one, use p instead
-                            delete(this.stackpoints[this.stackpoints.indexOf(line.points[0])]) // delete, not splice, so the indices don't change
-                            line.points.splice(0,1) //splice bc the order doesn't matter
-                            line.points.push(p)
-                            console.log("fixed t junction at",p)
-                            continue
-                        }
-                        //if the intersection was on point 2
-                        else if(p.x == line.points[1].xf & p.y == line.points[1].yf & line.points[1]!=p){
-                            delete(this.stackpoints[this.stackpoints.indexOf(line.points[1])]) // delete, not splice, so the indices don't change
-                            line.points.splice(1,1) //splice bc the order doesn't matter
-                            line.points.push(p)
-                            console.log("fixed t junction at",p)
-                            continue
-                        }
-*/
-                        
-                        if(dot([line.points[0].xf-p.xf,line.points[0].yf-p.yf],[line.points[1].xf-p.xf,line.points[1].yf-p.yf])<0-10^-8){
-                            //otherwise, the line will have to split into two lines, because the intersection was somewhere along the line
-                            p1 = line.points[0]
-                            p2 = line.points[1]
-                            if((eq(p1.xf,p.xf)&eq(p1.yf,p.yf)) | (eq(p.xf,p2.xf)&eq(p.yf,p2.yf))){
-                                continue //if for some reason p was equal to one of the end points
-                            }
-                            delete(this.stacklines[this.stacklines.indexOf(line)])
-                            newLine1 = new Stackline(p1,p)
-                            newLine2 = new Stackline(p,p2)
-                            this.stacklines.push(newLine1,newLine2)
-                        }
-                    }
-                }
-            }
-        }
-        //check for duplicates again? the backup delete is useful apparently 
-        for(const line1 of this.stacklines.slice(0,this.stacklines.length-1)){
-            if(line1==null){continue}
-            for(const line2 of this.stacklines.slice(this.stacklines.indexOf(line1)+1,this.stacklines.length)){
-                if(line2==null | line1 == null){continue}
-                if(haveSameContents(line1.points,line2.points)){
-                    //line2.points[0].lines.splice(line2.points[0].lines.indexOf(line2),1)
-                    //line2.points[1].lines.splice(line2.points[1].lines.indexOf(line2),1)
-                    delete(this.stacklines[this.stacklines.indexOf(line1)])
-                    continue
-                }   
-            }
-        }
-
-        //tell the points which lines they're connected to
-        this.stacklines = this.stacklines.filter(Boolean)
-        for(const point of this.stackpoints){point.lines = []}
-        for(const line of this.stacklines){
-            line.points[0].lines.push(line)
-            line.points[1].lines.push(line)
-        }
-        this.stackpoints.forEach((element) => element.sortAngles())
-
-        //one last patch
-        /*
-        for(const point1 of this.stackpoints.slice(0,this.stackpoints.length-1)){
-            for(const point2 of this.stackpoints.slice(this.stackpoints.indexOf(point1)+1,this.stackpoints.length)){
-                var point1Duplicates = []
-                point1.angles.forEach((angle1,index1)=> point1.angles.forEach((angle2,index2)=> eq(angle1,angle2)&(index1!=index2)? point1Duplicates.push([index1,index2]):null))
-                var point2Duplicates = []
-                point2.angles.forEach((angle1,index1)=> point2.angles.forEach((angle2,index2)=> eq(angle1,angle2)&(index1!=index2)? point2Duplicates.push([index1,index2]):null))
-
-                commonIndices = haveCommonElement([point1.lines[point1Duplicates[0]],point1.lines[point1Duplicates[1]]],
-                                                  [point2.lines[point2Duplicates[0]],point2.lines[point2Duplicates[1]]])
-                if(commonIndices.length>0){
-                    console.log('deleted by backup patch')
-                    this.stacklines.splice(this.stacklines.indexOf(point1.lines[commonIndices[0][0]]),1)
-                    point1.lines.splice(commonIndices[0][0],1)
-                    point2.lines.splice(commonIndices[0][1],1)
-                }
-            }
-        }
-        */
-
-        this.stacks = findStacks(this.stacklines) 
-
-        for(const stack of this.stacks){
-            for(const line of stack.lines){
-                line.stacks.push(stack) //kinda like the lines and points
-            }
-        }
-        //now can find matrix and neighbors and whatnot
-        for(const line of this.stacklines){
-            if(line.stacks.length !=2){continue}
-            //matrix[stacks.indexOf(line.stacks[1])][stacks.indexOf(line.stacks[0])] = line
-            //matrix[stacks.indexOf(line.stacks[0])][stacks.indexOf(line.stacks[1])] = line
-            line.stacks[1].neighbors.push(line.stacks[0])
-            line.stacks[0].neighbors.push(line.stacks[1])
-        }
-
-        //now create subfaces. iterate through the stacks and see if it's a subface of the face
-        for(const face of this.faces){
-            for(const stack of this.stacks){
-                if(isStackInFace(stack,face)){
-                    var newSubface = new Subface(face,stack)
-                    stack.subfaces.push(newSubface)
-                    face.subfaces.push(newSubface)
-                }
-                
-            }
-        }
-    }
-    testFoldability(){
-        //arrange the stacks
-        //by now, we have all our faces, stacks, subfaces, and face matrix and stacks matrix, and subface relations.
-        
-        //just need to find one arrangement.
-        //[random note] a subface is flipped if it's face's distance is odd
-        //start from the top of each stack and move down. if subface j needs to be above subface i, move i right below j. continue until stack has been fixed
-        //now look for tortilla tortilla: if neighboring stacks 2 and 3 both have subfaces from a and b, and a>b in one and b<a in the other,
-            //check if it's possible to move without violating inequalities.
-        //check for taco taco and taco tortilla 
-        //oof this is tough
     }
     displayXray(xc,yc,scale){
         var totalCenterx = 0
@@ -463,64 +226,14 @@ class CP {
             */
         }
     }
-    displayStacks(xc,yc,scale){
-        var totalCenterx = 0.5
-        var totalCentery = 0.5
-
-        function convertx(cp){
-            //Converting cp coords, which range from 0,1, into js coords centered at xc,yc
-            //return x1+cp*(x2-x1);
-            return (cp-totalCenterx)*scale+xc
-        }
-        function converty(cp){
-            //also the y coordinates are displayed upside down
-            //return y1-cp*(y1-y2);
-            return(cp-totalCentery)*scale+yc
-        }
-        var stacks = new paper.Group();
-        for(const line of this.stacklines){
-            var displayline = new paper.Path.Line(
-                new paper.Point(convertx(line.points[0].xf),converty(line.points[0].yf)),
-                new paper.Point(convertx(line.points[1].xf),converty(line.points[1].yf))
-            )
-            displayline.opacity = 0.3
-            displayline.strokeWidth = 10
-            displayline.strokeColor = "#EB5160"
-        }
-        for(const point of this.stackpoints){
-            var circle = new paper.Path.Circle({
-                center: new paper.Point(convertx(point.xf),converty(point.yf)),
-                radius: 15,
-                opacity: 0.3,
-                fillColor: 'purple'
-            })
-        }
-        for(const stack of this.stacks){
-            var displaystack = new paper.Path();
-            for(const point of stack.points){
-                displaystack.add(new paper.Point(convertx(point.xf),converty(point.yf)))
-            }
-            displaystack.closed = true;
-            displaystack.strokeColor = 'black'
-            displaystack.opacity = 0.3
-            displaystack.fillColor = 'blue'
-            displaystack.strokeWidth = (scale)/200;
-            stacks.addChild(displaystack)
-
-            var centerx = 0
-            var centery = 0
-            for(const point of stack.points){centerx += point.xf; centery += point.yf}
-            centerx = centerx/stack.points.length
-            centery = centery/stack.points.length
-            var center = new paper.Point(
-                convertx(centerx),
-                converty(centery))
-            var text = new paper.PointText(center)
-            text.content = stack.subfaces.length
-        }
-    }
+    
 }
 
+//==================================================================
+//auxiliary functions
+//==================================================================
+
+//File processing
 function readCpFile(file){
     //Inputs the cp file as an array, where each item in the array is the line as a string
     //Reads the cp file for the vertices and creases
@@ -612,19 +325,34 @@ function readCpFile(file){
     }}
     return new CP(vertices,creases)
 }
-function exportCpFile(CP){
-    console.log("stay tuned")
-}
+function download(CP) {
+    //https://ourcodeworld.com/articles/read/189/how-to-create-a-file-and-generate-a-download-with-javascript-in-the-browser-without-a-server
+    function convertx(x){
+        return x*400 - 200
+    }
+    function converty(y){
+        return y*400 - 200
+    }
+    contents = ''
+    for(const crease of CP.creases){
+        var newline = ''
+        if(crease.mv == 'E'){newline += '1 '}
+        else if(crease.mv == 'M'){newline += '2 '}
+        else if(crease.mv == 'V'){newline += '3 '}
+        else{newline += '4 '}
+        newline += convertx(crease.vertices[0].x).toString() + ' ' + converty(crease.vertices[0].y).toString() + ' '
+        newline += convertx(crease.vertices[1].x).toString() + ' ' + converty(crease.vertices[1].y).toString()
+        contents += newline + '\n'
+    }
 
-//==================================================================
-//auxiliary functions
-//==================================================================
 
-function eq(a,b){
-    if(Math.abs(a-b)>10**(-7)){return false} else {return true}
-}
-function dot(v1,v2){
-    return v1[0]*v2[0] + v1[1]*v2[1]
+    var element = document.createElement('a');
+    element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(contents));
+    element.setAttribute('download', 'output.cp');
+    element.style.display = 'none';
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
 }
 function split(creases,vertices){
     //takes in a list of creases and vertices
@@ -718,20 +446,12 @@ function displayCp(CP,x1,y1,x2,y2){ //so you can position where to draw it
     return cp
 }
 
-//face finding
-function reflectPoint(v1,v2,v3){
-    var v = [v3.x-v2.x , v3.y-v2.y]
-    var u = [v1.xf-v2.x , v1.yf-v2.y]
-    var p = [v2.x+v[0]*(u[1]*v[1] + u[0]*v[0])/(v[1]**2+v[0]**2), v2.y+v[1]*(u[1]*v[1] + u[0]*v[0])/(v[1]**2+v[0]**2)]
-    var v4 = [v1.xf+2*(p[0]-v1.xf) , v1.yf+2*(p[1]-v1.yf)]
-    return v4
+//basic operations
+function eq(a,b){
+    if(Math.abs(a-b)>10**(-7)){return false} else {return true}
 }
-function reflectFace(moving,reflector){
-    //moving: face that is moving
-    //reflector: the crease between the two faces
-    for(const vertex of moving.vertices){
-        [vertex.xf,vertex.yf] = reflectPoint(vertex,reflector.vertices[0],reflector.vertices[1])
-    }
+function dot(v1,v2){
+    return v1[0]*v2[0] + v1[1]*v2[1]
 }
 function haveSameContents(arr1,arr2){
     for(const item of arr1){
@@ -747,6 +467,23 @@ function haveCommonElement(arr1,arr2){
     var indices = []
     arr1.forEach((element,index) => arr2.includes(element)?indices.push([index,arr2.indexOf(element)]):null)
     return indices
+}
+
+
+//geometric operations
+function reflectPoint(v1,v2,v3){
+    var v = [v3.x-v2.x , v3.y-v2.y]
+    var u = [v1.xf-v2.x , v1.yf-v2.y]
+    var p = [v2.x+v[0]*(u[1]*v[1] + u[0]*v[0])/(v[1]**2+v[0]**2), v2.y+v[1]*(u[1]*v[1] + u[0]*v[0])/(v[1]**2+v[0]**2)]
+    var v4 = [v1.xf+2*(p[0]-v1.xf) , v1.yf+2*(p[1]-v1.yf)]
+    return v4
+}
+function reflectFace(moving,reflector){
+    //moving: face that is moving
+    //reflector: the crease between the two faces
+    for(const vertex of moving.vertices){
+        [vertex.xf,vertex.yf] = reflectPoint(vertex,reflector.vertices[0],reflector.vertices[1])
+    }
 }
 function isFaceClockwise(vertices){
     //https://stackoverflow.com/questions/1165647/how-to-determine-if-a-list-of-polygon-points-are-in-clockwise-order
@@ -782,12 +519,11 @@ function findFaces(creases){
     //generic algorithm for finding faces of a graph.
     //used for face finding on cp, and stack finding
     //"crease" just means an edge of a graph. contains two vertices, which contain creases in angular order
+    //also important to set the connectivity stuff here. creases to faces -> faces to each other
 
-    //faces by default run clockwise. discard counter clockwise faces.
+    //create the faces
     var faces = []
     for(const crease of creases){
-        //if(i%10==0){console.log(i)}
-        //if(crease.mv== 'E'){continue}
         //Find the two faces on either side of the crease
         //Keep turning right until you come back to this crease. See if this face is already found or not.
         //Do this for both directions.
@@ -814,23 +550,29 @@ function findFaces(creases){
                 }
             }
             if(creaseGroup.length<3){continue}
-            if(!isFaceClockwise(vertexGroup)){continue}
+            if(!isFaceClockwise(vertexGroup)){continue} //otherwise its the ones that run around the outside
             var isNew = true;
             
-            for(const face of faces){
-                if(haveSameContents(face.vertices,vertexGroup)){
-                    crease.faces.push(face)
+            for(const oldface of faces){
+                if(haveSameContents(oldface.vertices,vertexGroup)){
+                    //crease.faces.push(oldface)
                     var isNew = false;
                 }
             }
             if(isNew){
                 var newFace = new Face(creaseGroup,vertexGroup)
                 faces.push(newFace);
-                crease.faces.push(newFace);
+                //crease.faces.push(newFace);
             }
         }
     }
 
+    //tell creases which faces belong to them
+    for(const face of faces){
+        for(const crease of face.creases){
+            crease.faces.push(face)
+        }
+    }
     //now we make the connectivity matrix
     const n = faces.length
     matrix = []
@@ -840,7 +582,6 @@ function findFaces(creases){
     
     for(crease of creases){
         if(crease.faces.length !=2){continue}
-        
         //matrix[faces.indexOf(crease.faces[0])][faces.indexOf(crease.faces[1])] = crease
         //matrix[faces.indexOf(crease.faces[1])][faces.indexOf(crease.faces[0])] = crease
 
@@ -849,33 +590,6 @@ function findFaces(creases){
     }
 
     return [faces,matrix]
-}
-
-//stack finding
-//remember that although faces are convex, stacks might not be
-//https://www.swtestacademy.com/intersection-convex-polygons-algorithm/
-function linesIntersection(v1,v2,v3,v4){
-    //https://en.wikipedia.org/wiki/Line%E2%80%93line_intersection
-    const [x1,y1] = [v1.xf,v1.yf]   
-    const [x2,y2] = [v2.xf,v2.yf]
-    const [x3,y3] = [v3.xf,v3.yf]
-    const [x4,y4] = [v4.xf,v4.yf] 
-
-    const [a1,b1, a2, b2] = [y2-y1,x2-x1 , y4-y3,x4-x3]
-    const [c1,c2] = [a1*x1 + b1*y1 , a2*x3 + b2*y3]
-    const det = a1*b2 - a2*b1
-    if(det == 0){return null} //lines are parallel
-
-    //const x = (b2*c1 - b1*c2)/det
-    //const y = (a1*c2 - a2*c1)/det
-
-    const x = ((x1*y2 - y1*x2)*(b2) - (b1)*(x3*y4 - y3*x4))/det
-    const y = ((x1*y2 - y1*x2)*(a2) - (a1)*(x3*y4 - y3*x4))/det
-
-    //if the dot product of v1-p , v2-p is negative, the intersection crosses line 1. if 0, it's a T junction.
-    //we only want when it crosses both--skip t junction for now.
-    if(!(dot([x1-x,y1-y],[x2-x,y2-y]) < 0 & dot([x3-x,y3-y],[x4-x,y4-y]) < 0)) {return null} //no intersection
-    else{return [x,y]} //the intersection lies along at least one of the lines
 }
 function pointOnLine(p,line){
     //if the point lies on the line segment
@@ -913,87 +627,44 @@ function isPointInPolygon(point,polygon){
     if(crosses%2==0){return false} 
     else{return true}
 }
-function findStacks(lines){
-    //generic algorithm for finding faces of a graph.
-    //used for face finding on cp, and stack finding
-    //"line" just means an edge of a graph. contains two vertices, which contain creases in angular order
+function linesIntersection(v1,v2,v3,v4){
+    //https://en.wikipedia.org/wiki/Line%E2%80%93line_intersection
+    const [x1,y1] = [v1.xf,v1.yf]   
+    const [x2,y2] = [v2.xf,v2.yf]
+    const [x3,y3] = [v3.xf,v3.yf]
+    const [x4,y4] = [v4.xf,v4.yf] 
 
-    //faces by default run clockwise. discard counter clockwise faces.
-    var stacks = []
-    for(const line of lines){
-        
-        //Find the two faces on either side of the crease
-        //Keep turning right until you come back to this crease. See if this face is already found or not.
-        //Do this for both directions.
-        for(const endPoint of line.points){
-            var creaseGroup = []
-            var vertexGroup = []; 
-            var currentCrease;
-            var currentVertex;
-            var nextCrease;
+    const [a1,b1, a2, b2] = [y2-y1,x2-x1 , y4-y3,x4-x3]
+    const [c1,c2] = [a1*x1 + b1*y1 , a2*x3 + b2*y3]
+    const det = a1*b2 - a2*b1
+    if(det == 0){return null} //lines are parallel
 
-            currentCrease = line;
-            currentVertex = endPoint;
-            while(nextCrease!=line){
-                nextCrease = currentVertex.lines[currentVertex.lines.indexOf(currentCrease) + 1]
-                if(nextCrease == undefined){nextCrease = currentVertex.lines[0]}//loop around if you were at the end of the list
-                creaseGroup.push(nextCrease)
-                vertexGroup.push(currentVertex)
-                currentCrease = nextCrease
-                currentVertex = (currentVertex==currentCrease.points[0]? currentCrease.points[1]:currentCrease.points[0])
-                if(line.points.includes(currentVertex)){
-                    creaseGroup.push(line);
-                    vertexGroup.push(currentVertex);
-                    break
-                }
-            }
-            if(creaseGroup.length<3){continue}
-            if(!isFaceClockwise(vertexGroup)){continue}
-            var isNew = true;
-            for(const stack of stacks){
-                if(haveSameContents(stack.points,vertexGroup)){
-                    var isNew = false;
-                    break
-                }
-            }
-            if(isNew){
-                var newStack = new Stack(creaseGroup,vertexGroup)
-                stacks.push(newStack);
-                console.log('new stack',stacks)
-            }
+    //const x = (b2*c1 - b1*c2)/det
+    //const y = (a1*c2 - a2*c1)/det
+
+    const x = ((x1*y2 - y1*x2)*(b2) - (b1)*(x3*y4 - y3*x4))/det
+    const y = ((x1*y2 - y1*x2)*(a2) - (a1)*(x3*y4 - y3*x4))/det
+
+    //if the dot product of v1-p , v2-p is negative, the intersection crosses line 1. if 0, it's a T junction.
+    //we only want when it crosses both--skip t junction for now.
+    if(!(dot([x1-x,y1-y],[x2-x,y2-y]) < 0 & dot([x3-x,y3-y],[x4-x,y4-y]) < 0)) {return null} //no intersection
+    else{return [x,y]} //the intersection lies along at least one of the lines
+}
+function assignFaces(faces,startingFace){
+    faces.forEach(element => element.assigned = false)
+    startingFace.assigned = true
+    spread(startingFace)
+}
+function spread(face){
+    for(const neighbor of face.neighbors){
+        if((!neighbor.assigned) & ['M','V'].includes(face.creases.find(element=>neighbor.creases.includes(element)).mv)){
+            neighbor.assigned = true
+            spread(neighbor)
         }
     }
-    return stacks
-}
-function isStackInFace(stack,face){
-    //if divided correctly, it should be impossible for some points of the stack to be in and some to be out.
-    //however, you can have some that are on the edge and some that are out, and the stack will be out
-
-    //Go through the points on the stack. if any of them miss completely (crosses = 0), the whole thing is false
-    //if any of them are on the line, check the next one
-    //if any of them are in the face and not on the line, the whole thing is true
-    for(const point in stack.points){
-        var crosses = 0
-        var testline = new Stackline(point, new Stackpoint(100,point.yf))
-        for(const line of face.creases){
-            if(pointOnLine(point,line)){
-                crosses = 'on the line'
-                break
-            }
-            if(linesIntersection(line.points[0],line.points[1],testline.points[0],testline.points[1])){
-                crosses++
-            }
-        }
-        if(crosses == 'on the line'){continue} //check next point
-        if(crosses%2 == 0){return false}
-        console.log('true because point was inside',point,face.vertices)
-        if(crosses==1){return true}
-    }
-    console.log('true by default')
-    return true
 }
 
-
+//Local flat foldability
 function isVertexFlatFoldable(vertex){
 
     //get angles of creases. For each crease, use atan2 on the other vertex
@@ -1097,4 +768,359 @@ function isVertexFlatFoldable(vertex){
     if(M == V & A<2){vertex.angularFoldable=false; vertex.reason = "equal M and V"; return false}
 
     else{vertex.angularFoldable=true;vertex.reason = "default"; return true}
+}
+
+//global flat foldability
+function testGlobal(cp){
+    mergeFaces(cp) //press all the faces together. watch out for duplicate vertices and coincident lines
+    cleanup(cp) //remove duplicate lines and create new intersections
+    cp.stacks = findStackOutlines(cp.stacklines) //find stacks from the outline of the x ray
+    findStackNeighbors(cp) //find what stacks are neighboring
+    findSubfaces(cp) //find what faces are part of which stacks
+    arrangeSubfaces(cp)//at the end returns true or false
+}
+function mergeFaces(cp){
+    //combine folded faces onto each other to create a new graph, the xray map
+    assignFaces(cp.faces,cp.faces[0])
+    console.log(cp.assignedFaces)
+    cp.stackpoints = []
+    cp.stacklines = []
+    for(const face of cp.assignedFaces){
+        //transfer vertices
+        for(const vertex of face.vertices){
+            //create a stackpoint where vertex was
+            var newpoint = new Stackpoint(vertex.xf,vertex.yf)
+            var duplicate = false
+            for(const oldpoint of cp.stackpoints){
+                if(eq(oldpoint.xf,newpoint.xf) && eq(oldpoint.yf,newpoint.yf)){duplicate = true; break}
+            }
+            if(duplicate){continue}
+            cp.stackpoints.push(newpoint)
+        }
+        //transfer creases
+        for(const crease of face.creases){
+            //create a stack line where the crease was
+            //see if we can reuse existing stackpoints
+            var p1 = null
+            var p2 = null
+            for(const oldpoint of cp.stackpoints){
+                if(eq(oldpoint.xf,crease.vertices[0].xf) && eq(oldpoint.yf,crease.vertices[0].yf)){p1 = oldpoint; continue}
+                if(eq(oldpoint.xf,crease.vertices[1].xf) && eq(oldpoint.yf,crease.vertices[1].yf)){p2 = oldpoint; continue}
+            }
+            if(p1==null){p1 = new Stackpoint(crease.vertices[0].xf,crease.vertices[0].yf)}
+            if(p2==null){p2 = new Stackpoint(crease.vertices[1].xf,crease.vertices[1].yf)}
+            
+            var newLine = new Stackline(p1,p2)
+            if(eq(p1.xf,1) & eq(p2.xf,1)){
+                console.log(newLine)}
+
+
+            var duplicate = false
+            for(const oldLine of cp.stacklines){
+                if(oldLine==null){continue}
+                var commonIndices = haveCommonElement(oldLine.points,newLine.points)
+                //if they have two vertices in common, just don't even bother with newline
+                if(commonIndices.length==2){duplicate = true; break}
+                //if they have only one vertex in common and are colinear (same atan2)
+                if(commonIndices.length==1){
+                    var p = oldLine.points[commonIndices[0][0]] //the point in common
+                    var a = oldLine.points[commonIndices[0][0]==0?1:0] //oldline's other point
+                    var b = newLine.points[commonIndices[0][1]==0?1:0] //newline's other point
+                    if(eq(Math.atan2(b.yf-p.yf,b.xf-p.xf),Math.atan2(a.yf-p.yf,a.xf-p.xf))){
+                        //then instead of having lines pa and pb, have pa and ab (if a is closer). otherwise have pb and ba
+                        delete(cp.stacklines[cp.stacklines.indexOf(oldLine)])
+
+                        var closerpoint = Math.abs(a.xf-p.xf)+Math.abs(a.yf-p.yf) < Math.abs(b.xf-p.xf)+Math.abs(b.yf-p.yf) ? a:b
+                        //we can just add the distance instead of uusing distance formula because they are already colinear
+                        var furtherpoint = (a==closerpoint?b:a)
+                        var newLine1 = new Stackline(p,closerpoint)
+                        var newLine2 = new Stackline(closerpoint,furtherpoint)
+                        cp.stacklines.push(newLine1,newLine2)
+                        duplicate = true; break
+                    }
+                }
+                if(commonIndices.length==0){
+                    //mostly ok except for the case with lines ab and cd, points are colinear and in acbd order
+                    //handle cp case now because they are parallel and won't be noticed by the line intersection function
+                    if(eq(Math.abs(Math.atan(oldLine.points[0].yf-oldLine.points[1].yf,oldLine.points[0].xf-oldLine.points[1].xf)),
+                          Math.abs(Math.atan(newLine.points[0].yf-newLine.points[1].yf,newLine.points[0].xf-newLine.points[1].xf))) &
+                          (pointOnLine(oldLine.points[0],newLine) | pointOnLine(oldLine.points[1],newLine)&
+                            pointOnLine(newLine.points[0],oldLine) | pointOnLine(newLine.points[1],oldLine)   ) |
+                          (pointOnLine(newLine.points[0],oldLine) & pointOnLine(newLine.points[1],oldLine)) | 
+                          (pointOnLine(oldLine.points[0],newLine) & pointOnLine(oldLine.points[1],newLine)) ){
+                        //points are colinear. now find order
+                        var fourPoints = [oldLine.points[0],oldLine.points[1],newLine.points[0],newLine.points[1]]
+                        fourPoints.sort((a,b) => (Math.abs(a.xf)+Math.abs(a.yf)) - (Math.abs(b.xf)+Math.abs(b.yf)))
+                        delete(cp.stacklines[cp.stacklines.indexOf(oldLine)])
+                        cp.stacklines.push(new Stackline(fourPoints[0],fourPoints[1]))
+                        cp.stacklines.push(new Stackline(fourPoints[1],fourPoints[2]))
+                        cp.stacklines.push(new Stackline(fourPoints[2],fourPoints[3]))
+                    }
+                    
+                }
+            }
+            if(!duplicate){
+                cp.stacklines.push(newLine)
+            }
+        }
+    }
+}
+function cleanup(cp){
+    cp.stacklines = cp.stacklines.filter(Boolean) //remove the deleted empty ones
+
+    //now check for intersections that happen not on existing vertices
+    for(const line1 of cp.stacklines.slice(0,cp.stacklines.length-1)){
+        if(line1==null){continue}
+        for(const line2 of cp.stacklines.slice(cp.stacklines.indexOf(line1)+1,cp.stacklines.length)){
+            if(line2==null | line1 == null){continue}
+            //check for direct duplicates
+            if(haveSameContents(line1.points,line2.points)){
+                delete(cp.stacklines[cp.stacklines.indexOf(line1)])
+                continue
+            }
+
+            var intersection = linesIntersection(...line1.points,...line2.points)
+            if(intersection){
+                //add the intersection as a new point, if it wasn't there already
+                duplicate = false
+                p = new Stackpoint(...intersection)
+                for(const oldpoint of cp.stackpoints){
+                    if(eq(oldpoint.xf,intersection[0]) && eq(oldpoint.yf,intersection[1])){duplicate = true; var p = oldpoint; break}
+                }
+                if(!duplicate){var p = new Stackpoint(...intersection);cp.stackpoints.push(p);console.log("found new point")}
+
+                //if p is coincident with an endpoint (T junction), delete the endpoint and set p as the new endpoint
+                //if p is not coincident with an endpoint, delete crease and replace with 2
+                for(const line of [line1,line2]){              
+                    if(dot([line.points[0].xf-p.xf,line.points[0].yf-p.yf],[line.points[1].xf-p.xf,line.points[1].yf-p.yf])<0-10^-8){
+                        //otherwise, the line will have to split into two lines, because the intersection was somewhere along the line
+                        p1 = line.points[0]
+                        p2 = line.points[1]
+                        if((eq(p1.xf,p.xf)&eq(p1.yf,p.yf)) | (eq(p.xf,p2.xf)&eq(p.yf,p2.yf))){
+                            continue //if for some reason p was equal to one of the end points
+                        }
+                        delete(cp.stacklines[cp.stacklines.indexOf(line)])
+                        newLine1 = new Stackline(p1,p)
+                        newLine2 = new Stackline(p,p2)
+                        cp.stacklines.push(newLine1,newLine2)
+                    }
+                }
+            }
+        }
+    }
+    //check for duplicates again? the backup delete is useful apparently 
+    for(const line1 of cp.stacklines.slice(0,cp.stacklines.length-1)){
+        if(line1==null){continue}
+        for(const line2 of cp.stacklines.slice(cp.stacklines.indexOf(line1)+1,cp.stacklines.length)){
+            if(line2==null | line1 == null){continue}
+            if(haveSameContents(line1.points,line2.points)){
+                //line2.points[0].lines.splice(line2.points[0].lines.indexOf(line2),1)
+                //line2.points[1].lines.splice(line2.points[1].lines.indexOf(line2),1)
+                delete(cp.stacklines[cp.stacklines.indexOf(line1)])
+                continue
+            }   
+        }
+    }
+
+    //tell the points which lines they're connected to
+    cp.stacklines = cp.stacklines.filter(Boolean)
+    for(const point of cp.stackpoints){point.lines = []}
+    for(const line of cp.stacklines){
+        line.points[0].lines.push(line)
+        line.points[1].lines.push(line)
+    }
+    cp.stackpoints.forEach((element) => element.sortAngles())
+
+    //one last patch
+    /*
+    for(const point1 of cp.stackpoints.slice(0,cp.stackpoints.length-1)){
+        for(const point2 of cp.stackpoints.slice(cp.stackpoints.indexOf(point1)+1,cp.stackpoints.length)){
+            var point1Duplicates = []
+            point1.angles.forEach((angle1,index1)=> point1.angles.forEach((angle2,index2)=> eq(angle1,angle2)&(index1!=index2)? point1Duplicates.push([index1,index2]):null))
+            var point2Duplicates = []
+            point2.angles.forEach((angle1,index1)=> point2.angles.forEach((angle2,index2)=> eq(angle1,angle2)&(index1!=index2)? point2Duplicates.push([index1,index2]):null))
+
+            commonIndices = haveCommonElement([point1.lines[point1Duplicates[0]],point1.lines[point1Duplicates[1]]],
+                                              [point2.lines[point2Duplicates[0]],point2.lines[point2Duplicates[1]]])
+            if(commonIndices.length>0){
+                console.log('deleted by backup patch')
+                cp.stacklines.splice(cp.stacklines.indexOf(point1.lines[commonIndices[0][0]]),1)
+                point1.lines.splice(commonIndices[0][0],1)
+                point2.lines.splice(commonIndices[0][1],1)
+            }
+        }
+    }
+    */
+}
+function findStackOutlines(lines){
+    //generic algorithm for finding faces of a graph.
+    //used for face finding on cp, and stack finding
+    //"line" just means an edge of a graph. contains two vertices, which contain creases in angular order
+
+    //faces by default run clockwise. discard counter clockwise faces.
+    var stacks = []
+    for(const line of lines){
+        
+        //Find the two faces on either side of the crease
+        //Keep turning right until you come back to this crease. See if this face is already found or not.
+        //Do this for both directions.
+        for(const endPoint of line.points){
+            var creaseGroup = []
+            var vertexGroup = []; 
+            var currentCrease;
+            var currentVertex;
+            var nextCrease;
+
+            currentCrease = line;
+            currentVertex = endPoint;
+            while(nextCrease!=line){
+                nextCrease = currentVertex.lines[currentVertex.lines.indexOf(currentCrease) + 1]
+                if(nextCrease == undefined){nextCrease = currentVertex.lines[0]}//loop around if you were at the end of the list
+                creaseGroup.push(nextCrease)
+                vertexGroup.push(currentVertex)
+                currentCrease = nextCrease
+                currentVertex = (currentVertex==currentCrease.points[0]? currentCrease.points[1]:currentCrease.points[0])
+                if(line.points.includes(currentVertex)){
+                    creaseGroup.push(line);
+                    vertexGroup.push(currentVertex);
+                    break
+                }
+            }
+            if(creaseGroup.length<3){continue}
+            if(!isFaceClockwise(vertexGroup)){continue}
+            var isNew = true;
+            for(const stack of stacks){
+                if(haveSameContents(stack.points,vertexGroup)){
+                    var isNew = false;
+                    break
+                }
+            }
+            if(isNew){
+                var newStack = new Stack(creaseGroup,vertexGroup)
+                stacks.push(newStack);
+            }
+        }
+    }
+    return stacks
+}
+function findStackNeighbors(cp){
+    for(const stack of cp.stacks){
+        for(const line of stack.lines){
+            line.stacks.push(stack) //kinda like the lines and points
+        }
+    }
+    //now can find matrix and neighbors and whatnot
+    for(const line of cp.stacklines){
+        if(line.stacks.length !=2){continue}
+        //matrix[stacks.indexOf(line.stacks[1])][stacks.indexOf(line.stacks[0])] = line
+        //matrix[stacks.indexOf(line.stacks[0])][stacks.indexOf(line.stacks[1])] = line
+        line.stacks[1].neighbors.push(line.stacks[0])
+        line.stacks[0].neighbors.push(line.stacks[1])
+    }
+}
+function isStackInFace(stack,face){
+    //if divided correctly, it should be impossible for some points of the stack to be in and some to be out.
+    //however, you can have some that are on the edge and some that are out, and the stack will be out
+
+    //Go through the points on the stack. if any of them miss completely (crosses = 0), the whole thing is false
+    //if any of them are on the line, check the next one
+    //if any of them are in the face and not on the line, the whole thing is true
+    mainloop: for(const point of stack.points){
+        var crosses = 0
+        var testline = new Stackline(point, new Stackpoint(100,point.yf))
+        for(const line of face.creases){
+            if(linesIntersection(line.vertices[0],line.vertices[1],testline.points[0],testline.points[1])){
+                crosses++
+            }
+            if(pointOnLine(point,line)){
+                continue mainloop
+            }
+        }
+        if(crosses%2 == 0){return false}
+        if(crosses==1){return true}
+    }
+    return true
+}
+function findSubfaces(cp){
+    //now create subfaces. iterate through the stacks and see if it's a subface of the face
+    for(const face of cp.faces){
+        for(const stack of cp.stacks){
+            if(isStackInFace(stack,face)){
+                var newSubface = new Subface(face,stack)
+                stack.subfaces.push(newSubface)
+                face.subfaces.push(newSubface)
+            }
+            
+        }
+    }
+}
+function arrangeSubfaces(cp){
+    //arrange the stacks
+    //by now, we have all our faces, stacks, subfaces, and face matrix and stacks matrix, and subface relations.
+    
+    //just need to find one arrangement.
+    //[random note] a subface is flipped if it's face's distance is odd
+    //start from the top of each stack and move down. if subface j needs to be above subface i, move i right below j. continue until stack has been fixed
+    //now look for tortilla tortilla: if neighboring stacks 2 and 3 both have subfaces from a and b, and a>b in one and b<a in the other,
+        //check if it's possible to move without violating inequalities.
+    //check for taco taco and taco tortilla 
+    //oof this is tough
+}
+
+
+function displayStacks(xc,yc,scale,cp){
+    var totalCenterx = 0.5
+    var totalCentery = 0.5
+
+    function convertx(x){
+        //Converting cp coords, which range from 0,1, into js coords centered at xc,yc
+        //return x1+cp*(x2-x1);
+        return (x-totalCenterx)*scale+xc
+    }
+    function converty(y){
+        //also the y coordinates are displayed upside down
+        //return y1-cp*(y1-y2);
+        return(y-totalCentery)*scale+yc
+    }
+    var stacks = new paper.Group();
+    for(const line of cp.stacklines){
+        var displayline = new paper.Path.Line(
+            new paper.Point(convertx(line.points[0].xf),converty(line.points[0].yf)),
+            new paper.Point(convertx(line.points[1].xf),converty(line.points[1].yf))
+        )
+        displayline.opacity = 0.3
+        displayline.strokeWidth = 10
+        displayline.strokeColor = "#EB5160"
+    }
+    for(const point of cp.stackpoints){
+        var circle = new paper.Path.Circle({
+            center: new paper.Point(convertx(point.xf),converty(point.yf)),
+            radius: 15,
+            opacity: 0.3,
+            fillColor: 'purple'
+        })
+    }
+    for(const stack of cp.stacks){
+        var displaystack = new paper.Path();
+        for(const point of stack.points){
+            displaystack.add(new paper.Point(convertx(point.xf),converty(point.yf)))
+        }
+        displaystack.closed = true;
+        displaystack.strokeColor = 'black'
+        displaystack.opacity = 0.3
+        displaystack.fillColor = 'blue'
+        displaystack.strokeWidth = (scale)/200;
+        stacks.addChild(displaystack)
+
+        var centerx = 0
+        var centery = 0
+        for(const point of stack.points){centerx += point.xf; centery += point.yf}
+        centerx = centerx/stack.points.length
+        centery = centery/stack.points.length
+        var center = new paper.Point(
+            convertx(centerx),
+            converty(centery))
+        var text = new paper.PointText(center)
+        text.content = stack.subfaces.length
+    }
 }

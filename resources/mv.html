@@ -53,8 +53,9 @@
         </div>
 
         <div>
-            <button type = button onclick="testGlobalFlatFoldability(inputcp)">[global flat foldability detection]</button>
-            <button type = button onclick="dfs(currentcp)">Auto one solution</button>
+            <button type = button onclick="testing(inputcp)">[global flat foldability detection]</button>
+            <button type = button onclick="currentcp = dfs(currentcp)">Auto one solution</button>
+            <button type = button onclick="download(currentcp.CP)">Download current cp</button>
         </div> 
         <div>
             <p style="text-align: right;">Is the current cp flat foldable? (for manual solution)</p>
@@ -74,7 +75,7 @@
         </div>
          
         
-        <canvas id="square" width="800" height = "700"></canvas>
+        <canvas id="square" width="800" height = "900"></canvas>
         <script src="paper-core.js"></script>
         <script src="origami.js"></script>
         <script src="mv.js"></script>

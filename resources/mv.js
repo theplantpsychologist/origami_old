@@ -1,18 +1,20 @@
 /*
 Things to work on:
  - finish implementing global self intersection detection
+ - improve computation time/size limit. (for scale, oriedita folds 1500 crease cp in 2.7 secs)
+
 
  - finding next solution, and/or all solutions
  - downloading cp files, as .FOLD or svg or idk
- - inputting non-square cp files
+ - inputting non-square cp files, and more robust input processing
  - inputting .FOLD or other formats
+ - safer ui (watch out for double clicking and whatnot)
 
- - improve computation time/size limit. (for scale, oriedita folds 1500 crease cp in 2.7 secs)
-*/
+ */
 
 
-class PotentialCP{ //extends CP?
-    //this is the node of a binary tree. the input cp will be the root node.
+class PotentialCP{
+    //this is a node of the overall binary tree. the input cp will be the root node.
 
     //has a parent and up to 2 children: one m and one v.
     //also has an attribute if it's "alive" or not
@@ -119,10 +121,10 @@ function testing(inputcp){
         alert("This crease pattern has local flat foldability issues. Please fix the highlighted vertices and try again.")
         return
     }
-    inputcp.foldXray(); //already
+    //inputcp.foldXray(); //already
     //inputcp.displayXray(200,640,380);
-    inputcp.findStacks1();
-    inputcp.displayStacks(200,640,380);
+    testGlobal(currentcp.CP);
+    displayStacks(600,640,380,currentcp.CP);
 }
 
 
@@ -134,6 +136,7 @@ function dfs(currentcp){
             currentcp = no(currentcp)
         }
     }
+    return currentcp
 }
 
 function yes(currentcp){
@@ -185,20 +188,6 @@ function closestAncestor(currentcp){
         return currentcp
     }else{
         return closestAncestor(currentcp.parent)
-    }
-}
-
-function assignFaces(faces,startingFace){
-    faces.forEach(element => element.assigned = false)
-    startingFace.assigned = true
-    spread(startingFace)
-}
-function spread(face){
-    for(const neighbor of face.neighbors){
-        if((!neighbor.assigned) & ['M','V'].includes(face.creases.find(element=>neighbor.creases.includes(element)).mv)){
-            neighbor.assigned = true
-            spread(neighbor)
-        }
     }
 }
 
