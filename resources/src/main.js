@@ -9,7 +9,7 @@ import { SOLVER } from "./solver.js";
 
 window.onload = () => { MAIN.startup(); };  // entry point
 
-export const MAIN = {
+const MAIN = {
     startup: () => {
         NOTE.clear_log();
         NOTE.start("*** Starting Flat-Folder ***");
