@@ -135,7 +135,7 @@ function start(input){
 
 function dfs(currentcp){
     while(!currentcp.done){
-        if(main.test()){
+        if(main.test(currentcp.CP)){
             console.log('====PASSED GLOBAL FLAT FOLDABILITY=======')
             currentcp = yes(currentcp)
         } else {

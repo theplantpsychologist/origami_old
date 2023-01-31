@@ -11,7 +11,7 @@ window.onload = () => { MAIN.startup(); };  // entry point
 
 
 export const MAIN = {
-    test:() =>{
+    test:(cp) =>{
         //hard coded testing examples
         // var vertices_coords = [[0,0],[1,1],[0,1]]
         // var edges_vertices = [[0,1],[1,2],[0,2]]
@@ -58,7 +58,7 @@ export const MAIN = {
         //     "edges_assignment": edges_assignment,
         //     "faces_vertices":faces_vertices
         // }
-        return MAIN.compute_cells(MAIN.process_file(convertFOLD(currentcp.CP)));
+        return MAIN.compute_cells(MAIN.process_file(convertFOLD(cp)));
     },
 
 
