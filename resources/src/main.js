@@ -197,7 +197,7 @@ const MAIN = {
         const {P, SP, SE, CP, SC, CF, FC} = CELL;
         NOTE.time("*** Computing states ***");
         const BA0 = X.EF_EA_Ff_BF_2_BA0(EF, EA, Ff, BF);
-        const val = document.getElementById("limit_select").value;
+        const val = 1 //document.getElementById("limit_select").value;
         const lim = (val == "all") ? Infinity : +val;
         const [GB, GA] = SOLVER.solve(BF, BT, BA0, lim);
         const n = (GA == undefined) ? 0 : GA.reduce((s, A) => {
