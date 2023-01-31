@@ -54,7 +54,7 @@ const MAIN = {
         console.log('hi from startup')
         document.getElementById("fold_button").onclick = () => {
             console.log('hi from compute_cells')
-            FOLD = process_file('idk')
+            FOLD = MAIN.process_file('idk')
             MAIN.compute_cells(FOLD);
         };
         // document.getElementById("side").onclick = (e) => {
