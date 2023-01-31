@@ -44,6 +44,7 @@ const MAIN = {
         //     limit_select.appendChild(el);
         // }
         document.getElementById("import").onchange = (e) => {
+            console.log('hi')
             if (e.target.files.length > 0) {
                 const file_reader = new FileReader();
                 file_reader.onload = MAIN.process_file;
