@@ -9,7 +9,7 @@ import { SOLVER } from "./solver.js";
 
 window.onload = () => { MAIN.startup(); };  // entry point
 
-const MAIN = {
+export const MAIN = {
     startup: () => {
         NOTE.clear_log();
         NOTE.start("*** Starting Flat-Folder ***");
@@ -54,11 +54,7 @@ const MAIN = {
         console.log('hi from startup')
         document.getElementById("fold_button").onclick = () => {
             console.log('hi from compute_cells')
-            console.log(MAIN.process_file('bruh'))
-            console.log(currentcp.CP)
-            //here, convert currentcp.CP into a FOLD object
-
-
+            FOLD = process_file('idk')
             MAIN.compute_cells(FOLD);
         };
         // document.getElementById("side").onclick = (e) => {
@@ -71,7 +67,6 @@ const MAIN = {
     },
     process_file: (e) => {
         return e + 'hi'
-
         NOTE.clear_log();
         NOTE.start("*** Starting File Import ***");
         const doc = e.target.result;
@@ -93,27 +88,29 @@ const MAIN = {
         NOTE.annotate(Ff, "faces_flip");
         NOTE.lap();
         const FOLD = {V, Vf, VK, EV, EA, EF, FV, Ff};        //IMPORTANT                   <======================
-        NOTE.time("Drawing flat");
-        GUI.update_flat(FOLD);
-        NOTE.time("Drawing cell");
-        GUI.update_cell(FOLD);
-        SVG.clear("fold");
-        document.getElementById("num_states").innerHTML = "";
-        document.getElementById("fold_controls").style.display = "inline";
-        document.getElementById("state_controls").style.display = "none";
-        document.getElementById("state_config").style.display = "none";
-        document.getElementById("export_button").style.display = "inline";
-        document.getElementById("export_button").onclick = () => IO.write(FOLD);
-        document.getElementById("text").onchange = () => {
-            NOTE.start("Toggling Text");
-            GUI.update_text(FOLD);
-            NOTE.end();
-        };
-        document.getElementById("fold_button").onclick = () => {
-            MAIN.compute_cells(FOLD);
-        };
-        NOTE.lap();
-        NOTE.end();
+
+        return FOLD
+        // NOTE.time("Drawing flat");
+        // GUI.update_flat(FOLD);
+        // NOTE.time("Drawing cell");
+        // GUI.update_cell(FOLD);
+        // SVG.clear("fold");
+        // document.getElementById("num_states").innerHTML = "";
+        // document.getElementById("fold_controls").style.display = "inline";
+        // document.getElementById("state_controls").style.display = "none";
+        // document.getElementById("state_config").style.display = "none";
+        // document.getElementById("export_button").style.display = "inline";
+        // document.getElementById("export_button").onclick = () => IO.write(FOLD);
+        // document.getElementById("text").onchange = () => {
+        //     NOTE.start("Toggling Text");
+        //     GUI.update_text(FOLD);
+        //     NOTE.end();
+        // };
+        // document.getElementById("fold_button").onclick = () => {
+        //     MAIN.compute_cells(FOLD);
+        // };
+        // NOTE.lap();
+        // NOTE.end();
     },
     compute_cells: (FOLD) => {
         console.log('folding')
