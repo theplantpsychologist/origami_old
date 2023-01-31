@@ -74,23 +74,23 @@ export const MAIN = {
         //     }
         // };
         console.log('hi from startup')
-        document.getElementById("fold_button").onclick = () => {
-            console.log('hi from compute_cells')
-            var vertices_coords = [[0,0],[1,1],[0,1]]
-            var edges_vertices = [[0,1],[1,2],[0,2]]
-            var edges_assignment = ["B","B","B"]
-            var faces_vertices = [[0,1,2]]
-            for(const face of currentcp.CP.assignedFaces){
-                1+1
-            }
-            var cpobject = {
-                "vertices_coords":vertices_coords,
-                "edges_vertices": edges_vertices,
-                "edges_assignment": edges_assignment,
-                "faces_vertices":faces_vertices
-            }
-            MAIN.compute_cells(MAIN.process_file(cpobject));
-        };
+        // document.getElementById("fold_button").onclick = () => {
+        //     console.log('hi from compute_cells')
+        //     var vertices_coords = [[0,0],[1,1],[0,1]]
+        //     var edges_vertices = [[0,1],[1,2],[0,2]]
+        //     var edges_assignment = ["B","B","B"]
+        //     var faces_vertices = [[0,1,2]]
+        //     for(const face of currentcp.CP.assignedFaces){
+        //         1+1
+        //     }
+        //     var cpobject = {
+        //         "vertices_coords":vertices_coords,
+        //         "edges_vertices": edges_vertices,
+        //         "edges_assignment": edges_assignment,
+        //         "faces_vertices":faces_vertices
+        //     }
+        //     MAIN.compute_cells(MAIN.process_file(cpobject));
+        // };
         // document.getElementById("side").onclick = (e) => {
         //     const side = ((e.target.value == "+") ? "-" : "+");
         //     e.target.setAttribute("value", side);
@@ -180,7 +180,7 @@ export const MAIN = {
         //     GUI.update_text(FOLD, CELL);
         //     NOTE.end();
         // };
-        return window.setTimeout(MAIN.compute_constraints, 0, FOLD, CELL);
+        return MAIN.compute_constraints(FOLD, CELL);
     },
     compute_constraints: (FOLD, CELL) => {
         const {V, Vf, EV, EA, EF, FV, Ff} = FOLD;
@@ -213,7 +213,7 @@ export const MAIN = {
         // NOTE.time("Updating cell-face listeners");
         // //GUI.update_cell_face_listeners(FOLD, CELL, BF, BT);
         NOTE.lap();
-        return window.setTimeout(MAIN.compute_states, 0, FOLD, CELL, BF, BT);
+        return MAIN.compute_states(FOLD, CELL, BF, BT);
     },
     compute_states: (FOLD, CELL, BF, BT) => {
         const {V, Vf, EV, EA, EF, FV, Ff} = FOLD;
