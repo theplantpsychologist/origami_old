@@ -13,15 +13,15 @@ window.onload = () => { MAIN.startup(); };  // entry point
 export const MAIN = {
     test:(cp) =>{
         //hard coded testing examples
-        // var vertices_coords = [[0,0],[1,1],[0,1]]
-        // var edges_vertices = [[0,1],[1,2],[0,2]]
-        // var edges_assignment = ["B","B","B"]
-        // var faces_vertices = [[0,1,2]]
+        var vertices_coords = [[0,0],[1,1],[0,1]]
+        var edges_vertices = [[0,1],[1,2],[0,2]]
+        var edges_assignment = ["B","B","B"]
+        var faces_vertices = [[0,1,2]]
 
-        var vertices_coords = [[0,0],[0,1],[0.4,0],[0.4,1],[0.6,0],[0.6,1],[1,0],[1,1]]
-        var edges_vertices = [[2,3],[4,5],[3,5],[2,4],[0,1],[1,3],[4,6],[5,7]]
-        var edges_assignment = ["M","M","B","B","B","B","B","B","B","B"]
-        var faces_vertices = [[0,1,2,3,4],[2,3,4,5],[4,5,6,7]]
+        // var vertices_coords = [[0,0],[0,1],[0.4,0],[0.4,1],[0.6,0],[0.6,1],[1,0],[1,1]]
+        // var edges_vertices = [[2,3],[4,5],[3,5],[2,4],[0,1],[1,3],[4,6],[5,7]]
+        // var edges_assignment = ["M","M","B","B","B","B","B","B","B","B"]
+        // var faces_vertices = [[0,1,2,3,4],[2,3,4,5],[4,5,6,7]]
 
 
         for(const face of currentcp.CP.assignedFaces){
