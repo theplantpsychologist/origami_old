@@ -54,8 +54,7 @@ const MAIN = {
         console.log('hi from startup')
         document.getElementById("fold_button").onclick = () => {
             console.log('hi from compute_cells')
-            FOLD = MAIN.process_file('idk')
-            MAIN.compute_cells(FOLD);
+            MAIN.compute_cells(MAIN.process_file(currentcp.CP));
         };
         // document.getElementById("side").onclick = (e) => {
         //     const side = ((e.target.value == "+") ? "-" : "+");
@@ -66,7 +65,6 @@ const MAIN = {
         NOTE.end();
     },
     process_file: (e) => {
-        return e + 'hi'
         NOTE.clear_log();
         NOTE.start("*** Starting File Import ***");
         const doc = e.target.result;
@@ -137,14 +135,14 @@ const MAIN = {
         NOTE.count(CF, "face-cell adjacencies");
         NOTE.lap();
         const CELL = {P, SP, SE, CP, SC, CF, FC};
-        NOTE.time("Updating cell");
-        GUI.update_cell(FOLD, CELL);
+        // NOTE.time("Updating cell");
+        // GUI.update_cell(FOLD, CELL);
         NOTE.lap();
-        document.getElementById("text").onchange = (e) => {
-            NOTE.start("Toggling Text");
-            GUI.update_text(FOLD, CELL);
-            NOTE.end();
-        };
+        // document.getElementById("text").onchange = (e) => {
+        //     NOTE.start("Toggling Text");
+        //     GUI.update_text(FOLD, CELL);
+        //     NOTE.end();
+        // };
         window.setTimeout(MAIN.compute_constraints, 0, FOLD, CELL);
     },
     compute_constraints: (FOLD, CELL) => {
@@ -176,7 +174,7 @@ const MAIN = {
         const BT = BF.map((F,i) => [BT0[i], BT1[i], BT2[i], BT3[i]]);
         NOTE.lap();
         NOTE.time("Updating cell-face listeners");
-        GUI.update_cell_face_listeners(FOLD, CELL, BF, BT);
+        //GUI.update_cell_face_listeners(FOLD, CELL, BF, BT);
         NOTE.lap();
         window.setTimeout(MAIN.compute_states, 0, FOLD, CELL, BF, BT);
     },
@@ -194,45 +192,48 @@ const MAIN = {
         NOTE.time("Solve completed");
         NOTE.count(n, "folded states");
         NOTE.lap();
-        const num_states = document.getElementById("num_states");
-        num_states.textContent = `(Found ${n} state${(n == 1) ? "" : "s"})`;
-        if (n > 0) {
-            const GI = GB.map(() => 0);
-            NOTE.time("Computing state");
-            const edges = SOLVER.BF_GB_GA_GI_2_edges(BF, GB, GA, GI);
-            FOLD.FO = SOLVER.edges_Ff_2_FO(edges, Ff);
-            CELL.CD = SOLVER.CF_edges_flip_2_CD(CF, edges);
-            document.getElementById("state_controls").style.display = "inline"; 
-            document.getElementById("flip").onchange = (e) => {
-                NOTE.start("Flipping model");
-                GUI.update_fold(FOLD, CELL);
-                NOTE.end();
-            };
-            const comp_select = SVG.clear("component_select");
-            for (const opt of ["none", "all"]) {
-                const el = document.createElement("option");
-                el.setAttribute("value", opt);
-                el.textContent = opt;
-                comp_select.appendChild(el);
-            }
-            for (const [i, _] of GB.entries()) {
-                const el = document.createElement("option");
-                el.setAttribute("value", `${i}`);
-                el.textContent = `${i}`;
-                comp_select.appendChild(el);
-            }
-            comp_select.onchange = (e) => {
-                NOTE.start("Changing component");
-                GUI.update_component(FOLD, CELL, BF, GB, GA, GI);
-                NOTE.end();
-            };
-            NOTE.time("Drawing fold");
-            GUI.update_fold(FOLD, CELL);
-            NOTE.time("Drawing component");
-            GUI.update_component(FOLD, CELL, BF, GB, GA, GI);
-        }
-        NOTE.lap();
-        stop = Date.now();
-        NOTE.end();
+        console.log(n,"folded states AND WE'RE DONE WOOOOO");
+        return n
+
+        // const num_states = document.getElementById("num_states");
+        // num_states.textContent = `(Found ${n} state${(n == 1) ? "" : "s"})`;
+        // if (n > 0) {
+        //     const GI = GB.map(() => 0);
+        //     NOTE.time("Computing state");
+        //     const edges = SOLVER.BF_GB_GA_GI_2_edges(BF, GB, GA, GI);
+        //     FOLD.FO = SOLVER.edges_Ff_2_FO(edges, Ff);
+        //     CELL.CD = SOLVER.CF_edges_flip_2_CD(CF, edges);
+        //     document.getElementById("state_controls").style.display = "inline"; 
+        //     document.getElementById("flip").onchange = (e) => {
+        //         NOTE.start("Flipping model");
+        //         GUI.update_fold(FOLD, CELL);
+        //         NOTE.end();
+        //     };
+        //     const comp_select = SVG.clear("component_select");
+        //     for (const opt of ["none", "all"]) {
+        //         const el = document.createElement("option");
+        //         el.setAttribute("value", opt);
+        //         el.textContent = opt;
+        //         comp_select.appendChild(el);
+        //     }
+        //     for (const [i, _] of GB.entries()) {
+        //         const el = document.createElement("option");
+        //         el.setAttribute("value", `${i}`);
+        //         el.textContent = `${i}`;
+        //         comp_select.appendChild(el);
+        //     }
+        //     comp_select.onchange = (e) => {
+        //         NOTE.start("Changing component");
+        //         GUI.update_component(FOLD, CELL, BF, GB, GA, GI);
+        //         NOTE.end();
+        //     };
+        //     NOTE.time("Drawing fold");
+        //     GUI.update_fold(FOLD, CELL);
+        //     NOTE.time("Drawing component");
+        //     GUI.update_component(FOLD, CELL, BF, GB, GA, GI);
+        // }
+        // NOTE.lap();
+        // stop = Date.now();
+        // NOTE.end();
     },
 };
