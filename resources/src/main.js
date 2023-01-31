@@ -7,15 +7,6 @@ import { X } from "./conversion.js";
 import { GUI } from "./gui.js";
 import { SOLVER } from "./solver.js";
 
-// const M = require("./math.js")
-// const NOTE = require("./note.js")
-// const CON = require("./constraints.js")
-// const SVG = require("./svg.js")
-// const IO = require("./io.js")
-// const X = require("./convertion.js")
-// const GUI = require("./gui.js")
-// const SOLVER = require("./solver.js")
-
 window.onload = () => { MAIN.startup(); };  // entry point
 
 const MAIN = {
@@ -52,13 +43,13 @@ const MAIN = {
         //     el.textContent = val;
         //     limit_select.appendChild(el);
         // }
-        // document.getElementById("import").onchange = (e) => {
-        //     if (e.target.files.length > 0) {
-        //         const file_reader = new FileReader();
-        //         file_reader.onload = MAIN.process_file;
-        //         file_reader.readAsText(e.target.files[0]);
-        //     }
-        // };
+        document.getElementById("import").onchange = (e) => {
+            if (e.target.files.length > 0) {
+                const file_reader = new FileReader();
+                file_reader.onload = MAIN.process_file;
+                file_reader.readAsText(e.target.files[0]);
+            }
+        };
         // document.getElementById("side").onclick = (e) => {
         //     const side = ((e.target.value == "+") ? "-" : "+");
         //     e.target.setAttribute("value", side);
