@@ -1,6 +1,5 @@
 /*
 Things to work on:
- - finish implementing global self intersection detection
  - improve computation time/size limit. (for scale, oriedita folds 1500 crease cp in 2.7 secs)
 
 
@@ -9,6 +8,7 @@ Things to work on:
  - inputting non-square cp files, and more robust input processing
  - inputting .FOLD or other formats
  - safer ui (watch out for double clicking and whatnot)
+ - fix x ray display
 
  */
 
@@ -111,27 +111,6 @@ function start(input){
     displaycp2.addChild(displayAssignedFaces(currentcp.CP,410,50,790,430))
 
 }
-// function testGlobalFlatFoldability(currentcp){
-//     foldable = null
-//     document.getElementById("fold_button").click()
-//     return foldable
-//     return true
-//     //convert current cp to a FOLD (json object). Don't bypass the import functions, convert to fold and parse it again
-//     //run the FOLD object through flat folder's functions. extract solutions
-// }
-
-
-// function testing(inputcp){
-//     if(!inputcp.angularFoldable){
-//         alert("This crease pattern has local flat foldability issues. Please fix the highlighted vertices and try again.")
-//         return
-//     }
-//     //inputcp.foldXray(); //already
-//     //inputcp.displayXray(200,640,380);
-//     testGlobal(currentcp.CP);
-//     displayStacks(600,640,380,currentcp.CP);
-// }
-
 
 function dfs(currentcp){
     while(!currentcp.done){
@@ -150,11 +129,18 @@ function nextSolution(currentcp){
     currentcp = no(currentcp)
     return dfs(currentcp)
 }
-function findall(currentcp){
-    var allSolutions = []
+function allSolutions(currentcp){
+    var solutions = []
     currentcp = dfs(currentcp)
-    if(currentcp.done == 'success'){allSolutions.push(currentcp)}
-    if(currentcp.done == 'fail'){return allSolutions}
+    while(true){
+        if(currentcp.done == 'success'){
+            solutions.push(currentcp)
+            console.log('SOLUTIONS:', solutions)
+            currentcp = nextSolution(currentcp)
+        }
+        if(currentcp.done == 'fail'){break}
+    }
+    return allSolutions
 }
 
 function yes(currentcp){
@@ -180,7 +166,7 @@ function yes(currentcp){
 function no(currentcp){
     console.log("no")
     if(currentcp.index == 0) { //alternatively, if currentcp.parent == null
-        alert("No solution can be found")
+        //alert("No solution can be found")
         currentcp.done = 'fail'
         return currentcp
     }
