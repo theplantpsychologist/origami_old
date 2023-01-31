@@ -9,25 +9,27 @@ import { SOLVER } from "./solver.js";
 
 window.onload = () => { MAIN.startup(); };  // entry point
 
-export function test(cp){
-    console.log('hi from compute_cells')
-    var vertices_coords = [[0,0],[1,1],[0,1]]
-    var edges_vertices = [[0,1],[1,2],[0,2]]
-    var edges_assignment = ["B","B","B"]
-    var faces_vertices = [[0,1,2]]
-    for(const face of currentcp.CP.assignedFaces){
-        1+1
-    }
-    var cpobject = {
-        "vertices_coords":vertices_coords,
-        "edges_vertices": edges_vertices,
-        "edges_assignment": edges_assignment,
-        "faces_vertices":faces_vertices
-    }
-    return MAIN.compute_cells(MAIN.process_file(cpobject));
-}
+// export function test(cp){
+//     console.log('hi from compute_cells')
+//     var vertices_coords = [[0,0],[1,1],[0,1]]
+//     var edges_vertices = [[0,1],[1,2],[0,2]]
+//     var edges_assignment = ["B","B","B"]
+//     var faces_vertices = [[0,1,2]]
+//     for(const face of currentcp.CP.assignedFaces){
+//         1+1
+//     }
+//     var cpobject = {
+//         "vertices_coords":vertices_coords,
+//         "edges_vertices": edges_vertices,
+//         "edges_assignment": edges_assignment,
+//         "faces_vertices":faces_vertices
+//     }
+//     return MAIN.compute_cells(MAIN.process_file(cpobject));
+// }
 const MAIN = {
     startup: () => {
+
+        ooga = 'booga'
         NOTE.clear_log();
         NOTE.start("*** Starting Flat-Folder ***");
         //NOTE.time("Initializing interface");
@@ -69,23 +71,23 @@ const MAIN = {
         //     }
         // };
         console.log('hi from startup')
-        // document.getElementById("fold_button").onclick = () => {
-        //     console.log('hi from compute_cells')
-        //     var vertices_coords = [[0,0],[1,1],[0,1]]
-        //     var edges_vertices = [[0,1],[1,2],[0,2]]
-        //     var edges_assignment = ["B","B","B"]
-        //     var faces_vertices = [[0,1,2]]
-        //     for(const face of currentcp.CP.assignedFaces){
-        //         1+1
-        //     }
-        //     var cpobject = {
-        //         "vertices_coords":vertices_coords,
-        //         "edges_vertices": edges_vertices,
-        //         "edges_assignment": edges_assignment,
-        //         "faces_vertices":faces_vertices
-        //     }
-        //     MAIN.compute_cells(MAIN.process_file(cpobject));
-        // };
+        document.getElementById("fold_button").onclick = () => {
+            console.log('hi from compute_cells')
+            var vertices_coords = [[0,0],[1,1],[0,1]]
+            var edges_vertices = [[0,1],[1,2],[0,2]]
+            var edges_assignment = ["B","B","B"]
+            var faces_vertices = [[0,1,2]]
+            for(const face of currentcp.CP.assignedFaces){
+                1+1
+            }
+            var cpobject = {
+                "vertices_coords":vertices_coords,
+                "edges_vertices": edges_vertices,
+                "edges_assignment": edges_assignment,
+                "faces_vertices":faces_vertices
+            }
+            MAIN.compute_cells(MAIN.process_file(cpobject));
+        };
         // document.getElementById("side").onclick = (e) => {
         //     const side = ((e.target.value == "+") ? "-" : "+");
         //     e.target.setAttribute("value", side);
