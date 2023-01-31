@@ -81,13 +81,13 @@ const MAIN = {
         //directly pass in the cp as a json object
         NOTE.clear_log();
         NOTE.start("*** Starting File Import ***");
-        const file_name = "file"//document.getElementById("import").value;
+        //const file_name = document.getElementById("import").value;
         //const parts = file_name.split(".");
-        const type = 'fold' //parts[parts.length - 1].toLowerCase();
+        //const type = parts[parts.length - 1].toLowerCase();
         console.log(e)
-        NOTE.time(`Importing from file ${file_name}`);
-        console.log(IO.doc_type_2_V_VV_EV_EA_EF_FV(e, type))
-        const [V, VV, EV, EA, EF, FV] = IO.doc_type_2_V_VV_EV_EA_EF_FV(e, type);
+        NOTE.time(`Importing object`);
+        console.log(IO.FOLD_2_V_EV_EA_VV_FV(e))
+        const [V, VV, EV, EA, EF, FV] = IO.FOLD_2_V_EV_EA_VV_FV(e);
         if (V == undefined) { return; }
         const VK = X.V_VV_EV_EA_2_VK(V, VV, EV, EA);
         NOTE.annotate(V, "vertices_coords");
