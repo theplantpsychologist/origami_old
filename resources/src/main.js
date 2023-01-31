@@ -8,6 +8,24 @@ import { GUI } from "./gui.js";
 import { SOLVER } from "./solver.js";
 
 window.onload = () => { MAIN.startup(); };  // entry point
+
+export function testGlobalFlatFoldability(cp){
+    console.log('hi from compute_cells')
+    var vertices_coords = [[0,0],[1,1],[0,1]]
+    var edges_vertices = [[0,1],[1,2],[0,2]]
+    var edges_assignment = ["B","B","B"]
+    var faces_vertices = [[0,1,2]]
+    for(const face of currentcp.CP.assignedFaces){
+        1+1
+    }
+    var cpobject = {
+        "vertices_coords":vertices_coords,
+        "edges_vertices": edges_vertices,
+        "edges_assignment": edges_assignment,
+        "faces_vertices":faces_vertices
+    }
+    MAIN.compute_cells(MAIN.process_file(cpobject));
+}
 const MAIN = {
     startup: () => {
         NOTE.clear_log();
@@ -207,7 +225,7 @@ const MAIN = {
         NOTE.count(n, "folded states");
         NOTE.lap();
         console.log(n!=0,"folded states AND WE'RE DONE WOOOOO");
-        
+
         foldable = n!=0
         return n!=0
 
