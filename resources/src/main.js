@@ -51,8 +51,10 @@ const MAIN = {
                 file_reader.readAsText(e.target.files[0]);
             }
         };
-        console.log('hi')
+        console.log('hi from startup')
         document.getElementById("fold_button").onclick = () => {
+            console.log('hi from compute_cells')
+            console.log(currentcp.CP)
             MAIN.compute_cells(FOLD);
         };
         // document.getElementById("side").onclick = (e) => {

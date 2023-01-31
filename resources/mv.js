@@ -111,8 +111,10 @@ function start(input){
     displaycp2.addChild(displayAssignedFaces(currentcp.CP,410,50,790,430))
 
 }
-function testGlobalFlatFoldability(inputcp){
+function testGlobalFlatFoldability(currentcp){
     return true
+    //convert current cp to a FOLD (json object). Don't bypass the import functions, convert to fold and parse it again
+    //run the FOLD object through flat folder's functions. extract solutions
 }
 
 
