@@ -11,39 +11,52 @@ window.onload = () => { MAIN.startup(); };  // entry point
 
 
 export const MAIN = {
-    test:(cp) =>{
+    test:() =>{
         //hard coded testing examples
         // var vertices_coords = [[0,0],[1,1],[0,1]]
         // var edges_vertices = [[0,1],[1,2],[0,2]]
         // var edges_assignment = ["B","B","B"]
         // var faces_vertices = [[0,1,2]]
 
-        // var vertices_coords = [[0,0],[0,1],[0.4,0],[0.4,1],[0.6,0],[0.6,1],[1,0],[1,1]]
-        // var edges_vertices = [[2,3],[4,5],[3,5],[2,4],[0,1],[1,3],[4,6],[5,7]]
-        // var edges_assignment = ["M","V","B","B","B","B","B","B","B","B"]
-        // var faces_vertices = [[0,1,2,3,4],[2,3,4,5],[4,5,6,7]]
-
-
-        // for(const face of currentcp.CP.assignedFaces){
-        //     1+1
-        // }
         // var cpobject = {
-        //     "vertices_coords":vertices_coords,
-        //     "edges_vertices": edges_vertices,
-        //     "edges_assignment": edges_assignment,
-        //     "faces_vertices":faces_vertices
+        //     "frame_parent" : 0,
+        //     "frame_frameInherit" : false,
+        //     "vertices_coords" : [ [ 50.00000000000002, -200.0 ], [ 50.0, 200.0 ], [ -50.0, 200.0 ], [ -49.99999999999998, -200.0 ], [ -200.0, -200.0 ], [ 200.0, 200.0 ], [ 200.0, -200.0 ], [ -200.0, 200.0 ] ],
+        //     "edges_vertices" : [ [ 0, 1 ], [ 2, 3 ], [ 4, 3 ], [ 5, 1 ], [ 0, 3 ], [ 2, 1 ], [ 6, 5 ], [ 4, 7 ], [ 6, 0 ], [ 7, 2 ] ],
+        //     "edges_assignment" : [ "M", "V", "B", "B", "B", "B", "B", "B", "B", "B" ],
+        //     "edges_foldAngle" : [ 180.0, -180.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ],
+        //     "faces_vertices" : [ [ 0, 1, 5, 6 ], [ 0, 3, 2, 1 ], [ 2, 3, 4, 7 ] ],
+        //     "file_spec" : 1.1,
+        //     "file_creator" : "oriedita"
         // }
+
+        var vertices_coords = []
+        var edges_vertices = []
+        var edges_assignment = []
+        var faces_vertices = []
+        for(const face of currentcp.CP.assignedFaces){
+            var facevertices = []
+            for(const vertex of face.vertices){
+                var index = vertices_coords.findIndex(item => item[0]==vertex.x & item[1]==vertex.y)
+                if(index == -1){index = vertices_coords.length; vertices_coords.push([vertex.x,vertex.y])}
+                else{facevertices.push(index)}
+            }
+            for(const crease of face.creases){
+                if(crease.mv == 'A' | crease.mv == 'E'){edges_assignment.push("B")}
+                else{edges_assignment.push(crease.mv)}
+                var index1 = vertices_coords.findIndex(item => item[0]==crease.vertices[0].x & item[1]==crease.vertices[0].y)
+                var index2 = vertices_coords.findIndex(item => item[0]==crease.vertices[1].x & item[1]==crease.vertices[1].y)
+                edges_vertices.push([index1,index2])
+            }
+            faces_vertices.push(facevertices)
+        }
         var cpobject = {
-            "frame_parent" : 0,
-            "frame_frameInherit" : false,
-            "vertices_coords" : [ [ 50.00000000000002, -200.0 ], [ 50.0, 200.0 ], [ -50.0, 200.0 ], [ -49.99999999999998, -200.0 ], [ -200.0, -200.0 ], [ 200.0, 200.0 ], [ 200.0, -200.0 ], [ -200.0, 200.0 ] ],
-            "edges_vertices" : [ [ 0, 1 ], [ 2, 3 ], [ 4, 3 ], [ 5, 1 ], [ 0, 3 ], [ 2, 1 ], [ 6, 5 ], [ 4, 7 ], [ 6, 0 ], [ 7, 2 ] ],
-            "edges_assignment" : [ "M", "V", "B", "B", "B", "B", "B", "B", "B", "B" ],
-            "edges_foldAngle" : [ 180.0, -180.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ],
-            "faces_vertices" : [ [ 0, 1, 5, 6 ], [ 0, 3, 2, 1 ], [ 2, 3, 4, 7 ] ],
-            "file_spec" : 1.1,
-            "file_creator" : "oriedita"
-          }
+            "vertices_coords":vertices_coords,
+            "edges_vertices": edges_vertices,
+            "edges_assignment": edges_assignment,
+            "faces_vertices":faces_vertices
+        }
+
         return MAIN.compute_cells(MAIN.process_file(cpobject));
     },
 
