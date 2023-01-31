@@ -170,9 +170,10 @@ export const IO = {    // INPUT-OUTPUT
         }
         return lines;
     },
-    FOLD_2_V_EV_EA_VV_FV: (doc) => {
+    FOLD_2_V_EV_EA_VV_FV: (ex) => {
+        //pass the object directly in
         let V, EV, EA, VV, FV;
-        const ex = JSON.parse(doc);
+        //const ex = JSON.parse(doc);
         if ("vertices_coords" in ex) {
             V = ex["vertices_coords"]; 
         } else {
@@ -205,58 +206,59 @@ export const IO = {    // INPUT-OUTPUT
         if (type == "fold") {
             [V, EV, EA, VV, FV] = IO.FOLD_2_V_EV_EA_VV_FV(doc);
             if (V == undefined) { return []; }
-        } else {
-            let L, EL;
-            if      (type == "svg") { L = IO.SVG_2_L(doc); }
-            else if (type ==  "cp") { L =  IO.CP_2_L(doc); }
-            else if (type == "opx") { L = IO.OPX_2_L(doc); }
-            else {
-                NOTE.time(`ERROR: File extension .${type} not supported!`);
-                NOTE.time("       Please use from [.fold, .svg, .cp, .opx]");
-                return [];
-            }
-            NOTE.annotate(L, "lines");
-            NOTE.lap();
-            const eps = M.min_line_length(L) / M.EPS;
-            NOTE.time(`Using eps ${eps} from min line length ${eps*M.EPS}`);
-            NOTE.time("Constructing FOLD from lines");
-            [V, EV, EL] = X.L_2_V_EV_EL(L, eps);
-            EA = EL.map(l => L[l[0]][2]); 
-        }
-        V = M.normalize_points(V);
-        const flip_EA = (EA) => {
-            return EA.map((a) => (a == "M") ? "V" : ((a == "V") ? "M" : a));
-        };
-        const flip_Y = (V) => V.map(([x, y]) => [x, -y + 1]);
-        const reverse_FV = (FV) => {
-            for (const F of FV) {
-                F.reverse();
-            }
-        };
-        if (FV == undefined) {
-            if (document.getElementById("side").value == "+") {
-                EA = flip_EA(EA);
-            } else {
-                V = flip_Y(V);
-            }
-            [VV, FV] = X.V_EV_2_VV_FV(V, EV);
-        } else {
-            if (M.polygon_area2(M.expand(FV[0], V)) < 0) {
-                EA = flip_EA(EA);
-                reverse_FV(FV);
-            }
-            if (document.getElementById("side").value == "-") {
-                EA = flip_EA(EA);
-                reverse_FV(FV);
-                V = flip_Y(V);
-            }
-        }
-        const EF = X.EV_FV_2_EF(EV, FV);
-        for (const [i, F] of EF.entries()) {    // boundary edge assignment
-            if (F.length == 1) {
-                EA[i] = "B";
-            }
-        }
-        return [V, VV, EV, EA, EF, FV];
+        } 
+        // else {
+        //     let L, EL;
+        //     if      (type == "svg") { L = IO.SVG_2_L(doc); }
+        //     else if (type ==  "cp") { L =  IO.CP_2_L(doc); }
+        //     else if (type == "opx") { L = IO.OPX_2_L(doc); }
+        //     else {
+        //         NOTE.time(`ERROR: File extension .${type} not supported!`);
+        //         NOTE.time("       Please use from [.fold, .svg, .cp, .opx]");
+        //         return [];
+        //     }
+        //     NOTE.annotate(L, "lines");
+        //     NOTE.lap();
+        //     const eps = M.min_line_length(L) / M.EPS;
+        //     NOTE.time(`Using eps ${eps} from min line length ${eps*M.EPS}`);
+        //     NOTE.time("Constructing FOLD from lines");
+        //     [V, EV, EL] = X.L_2_V_EV_EL(L, eps);
+        //     EA = EL.map(l => L[l[0]][2]); 
+        // }
+        // V = M.normalize_points(V);
+        // const flip_EA = (EA) => {
+        //     return EA.map((a) => (a == "M") ? "V" : ((a == "V") ? "M" : a));
+        // };
+        // const flip_Y = (V) => V.map(([x, y]) => [x, -y + 1]);
+        // const reverse_FV = (FV) => {
+        //     for (const F of FV) {
+        //         F.reverse();
+        //     }
+        // };
+        // if (FV == undefined) {
+        //     if (document.getElementById("side").value == "+") {
+        //         EA = flip_EA(EA);
+        //     } else {
+        //         V = flip_Y(V);
+        //     }
+        //     [VV, FV] = X.V_EV_2_VV_FV(V, EV);
+        // } else {
+        //     if (M.polygon_area2(M.expand(FV[0], V)) < 0) {
+        //         EA = flip_EA(EA);
+        //         reverse_FV(FV);
+        //     }
+        //     if (document.getElementById("side").value == "-") {
+        //         EA = flip_EA(EA);
+        //         reverse_FV(FV);
+        //         V = flip_Y(V);
+        //     }
+        // }
+        // const EF = X.EV_FV_2_EF(EV, FV);
+        // for (const [i, F] of EF.entries()) {    // boundary edge assignment
+        //     if (F.length == 1) {
+        //         EA[i] = "B";
+        //     }
+        // }
+        // return [V, VV, EV, EA, EF, FV];
     },
 };

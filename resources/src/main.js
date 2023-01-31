@@ -54,7 +54,17 @@ const MAIN = {
         console.log('hi from startup')
         document.getElementById("fold_button").onclick = () => {
             console.log('hi from compute_cells')
-            MAIN.compute_cells(MAIN.process_file(currentcp.CP));
+            vertices_coords = []
+            edges_vertices = []
+            edges_assignment = []
+            faces_vertices = []
+            cpobject = {
+                "vertices_coords":vertices_coords,
+                "edges_vertices": edges_vertices,
+                "edges_assignment": edges_assignment,
+                "faces_vertices":faces_vertices
+            }
+            MAIN.compute_cells(MAIN.process_file(cpobject));
         };
         // document.getElementById("side").onclick = (e) => {
         //     const side = ((e.target.value == "+") ? "-" : "+");
