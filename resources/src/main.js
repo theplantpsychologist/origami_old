@@ -13,25 +13,135 @@ window.onload = () => { MAIN.startup(); };  // entry point
 export const MAIN = {
     test:(cp) =>{
         //hard coded testing examples
-        var vertices_coords = [[0,0],[1,1],[0,1]]
-        var edges_vertices = [[0,1],[1,2],[0,2]]
-        var edges_assignment = ["B","B","B"]
-        var faces_vertices = [[0,1,2]]
+        // var vertices_coords = [[0,0],[1,1],[0,1]]
+        // var edges_vertices = [[0,1],[1,2],[0,2]]
+        // var edges_assignment = ["B","B","B"]
+        // var faces_vertices = [[0,1,2]]
 
         // var vertices_coords = [[0,0],[0,1],[0.4,0],[0.4,1],[0.6,0],[0.6,1],[1,0],[1,1]]
         // var edges_vertices = [[2,3],[4,5],[3,5],[2,4],[0,1],[1,3],[4,6],[5,7]]
-        // var edges_assignment = ["M","M","B","B","B","B","B","B","B","B"]
+        // var edges_assignment = ["M","V","B","B","B","B","B","B","B","B"]
         // var faces_vertices = [[0,1,2,3,4],[2,3,4,5],[4,5,6,7]]
 
 
-        for(const face of currentcp.CP.assignedFaces){
-            1+1
-        }
+        // for(const face of currentcp.CP.assignedFaces){
+        //     1+1
+        // }
+        // var cpobject = {
+        //     "vertices_coords":vertices_coords,
+        //     "edges_vertices": edges_vertices,
+        //     "edges_assignment": edges_assignment,
+        //     "faces_vertices":faces_vertices
+        // }
         var cpobject = {
-            "vertices_coords":vertices_coords,
-            "edges_vertices": edges_vertices,
-            "edges_assignment": edges_assignment,
-            "faces_vertices":faces_vertices
+        "vertices_coords": [
+            [
+              0.25,
+              0
+            ],
+            [
+              0.25,
+              1
+            ],
+            [
+              0.625,
+              0
+            ],
+            [
+              0.625,
+              1
+            ],
+            [
+              0.375,
+              0
+            ],
+            [
+              0.375,
+              1
+            ],
+            [
+              0.75,
+              0
+            ],
+            [
+              0.75,
+              1
+            ]
+          ],
+          "edges_vertices": [
+            [
+              4,
+              5
+            ],
+            [
+              2,
+              3
+            ],
+            [
+              0,
+              2
+            ],
+            [
+              5,
+              7
+            ],
+            [
+              2,
+              4
+            ],
+            [
+              3,
+              5
+            ],
+            [
+              6,
+              7
+            ],
+            [
+              0,
+              1
+            ],
+            [
+              4,
+              6
+            ],
+            [
+              1,
+              3
+            ]
+          ],
+          "edges_assignment": [
+            "M",
+            "V",
+            "B",
+            "B",
+            "B",
+            "B",
+            "B",
+            "B",
+            "B",
+            "B"
+          ],
+          "faces_vertices": [
+            [
+              0,
+              2,
+              3,
+              1
+            ],
+            [
+              4,
+              6,
+              7,
+              5
+            ],
+            [
+              2,
+              4,
+              5,
+              3
+            ]
+          ],
         }
         return MAIN.compute_cells(MAIN.process_file(cpobject));
     },
