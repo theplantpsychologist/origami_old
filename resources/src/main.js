@@ -54,10 +54,13 @@ const MAIN = {
         console.log('hi from startup')
         document.getElementById("fold_button").onclick = () => {
             console.log('hi from compute_cells')
-            var vertices_coords = []
-            var edges_vertices = []
-            var edges_assignment = []
-            var faces_vertices = []
+            var vertices_coords = [[0,0],[1,1],[0,1]]
+            var edges_vertices = [[0,1],[1,2],[0,2]]
+            var edges_assignment = ["B","B","B"]
+            var faces_vertices = [[0,1,2]]
+            for(const face of currentcp.CP.assignedFaces){
+                1+1
+            }
             var cpobject = {
                 "vertices_coords":vertices_coords,
                 "edges_vertices": edges_vertices,
