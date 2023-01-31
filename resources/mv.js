@@ -4,6 +4,7 @@ Things to work on:
 
 
  - finding next solution, and/or all solutions
+ - ui text with number of faces, number of creases, number of solutions
  - downloading cp files, as .FOLD or svg or idk
  - inputting non-square cp files, and more robust input processing
  - inputting .FOLD or other formats
@@ -85,6 +86,7 @@ function start(input){
     paper.project.clear();
     globalIndex = 0
     allcps = []
+    solutions = []
     //note: will need to run a split/merge function to clean it up before processing
     inputcp = readCpFile(input);
     displaycp1.clear();
@@ -130,11 +132,9 @@ function nextSolution(currentcp){
     return dfs(currentcp)
 }
 function allSolutions(currentcp){
-    var solutions = []
     currentcp = dfs(currentcp)
     while(true){
         if(currentcp.done == 'success'){
-            solutions.push(currentcp)
             console.log('SOLUTIONS:', solutions)
             currentcp = nextSolution(currentcp)
         }
@@ -146,8 +146,8 @@ function allSolutions(currentcp){
 function yes(currentcp){
     console.log("yes")
     if(currentcp.CP.assignedFaces.length == currentcp.CP.faces.length){
-        //alert("The cp has been fully assigned")
         currentcp.done = 'success'
+        solutions.push(currentcp)
         return currentcp
     }
     currentcp = currentcp.createChild()    
@@ -188,7 +188,8 @@ function closestAncestor(currentcp){
     if((currentcp.alive & currentcp.children.length<2)){
         return currentcp
     }else if (currentcp.parent == null){
-        alert("No solution can be found")
+        //alert("No solution can be found")
+        currentcp.done = 'fail'
         return currentcp
     }else{
         return closestAncestor(currentcp.parent)
