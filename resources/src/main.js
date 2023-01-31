@@ -46,7 +46,7 @@ export const MAIN = {
                 else{edges_assignment.push(crease.mv)}
                 var index1 = vertices_coords.findIndex(item => item[0]==crease.vertices[0].x & item[1]==crease.vertices[0].y)
                 var index2 = vertices_coords.findIndex(item => item[0]==crease.vertices[1].x & item[1]==crease.vertices[1].y)
-                if(edges_vertices.findIndex(item =>haveSameContents(item,[index1,index2])) != -1){edges_vertices.push([index1,index2])}
+                if(edges_vertices.findIndex(item =>haveSameContents(item,[index1,index2]))== -1){edges_vertices.push([index1,index2])}
             }
             faces_vertices.push(facevertices)
         }
