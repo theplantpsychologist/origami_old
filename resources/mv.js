@@ -111,31 +111,31 @@ function start(input){
     displaycp2.addChild(displayAssignedFaces(currentcp.CP,410,50,790,430))
 
 }
-function testGlobalFlatFoldability(currentcp){
-    foldable = null
-    document.getElementById("fold_button").click()
-    return foldable
-    return true
-    //convert current cp to a FOLD (json object). Don't bypass the import functions, convert to fold and parse it again
-    //run the FOLD object through flat folder's functions. extract solutions
-}
+// function testGlobalFlatFoldability(currentcp){
+//     foldable = null
+//     document.getElementById("fold_button").click()
+//     return foldable
+//     return true
+//     //convert current cp to a FOLD (json object). Don't bypass the import functions, convert to fold and parse it again
+//     //run the FOLD object through flat folder's functions. extract solutions
+// }
 
 
-function testing(inputcp){
-    if(!inputcp.angularFoldable){
-        alert("This crease pattern has local flat foldability issues. Please fix the highlighted vertices and try again.")
-        return
-    }
-    //inputcp.foldXray(); //already
-    //inputcp.displayXray(200,640,380);
-    testGlobal(currentcp.CP);
-    displayStacks(600,640,380,currentcp.CP);
-}
+// function testing(inputcp){
+//     if(!inputcp.angularFoldable){
+//         alert("This crease pattern has local flat foldability issues. Please fix the highlighted vertices and try again.")
+//         return
+//     }
+//     //inputcp.foldXray(); //already
+//     //inputcp.displayXray(200,640,380);
+//     testGlobal(currentcp.CP);
+//     displayStacks(600,640,380,currentcp.CP);
+// }
 
 
 function dfs(currentcp){
     while(!currentcp.done){
-        if(testGlobalFlatFoldability(currentcp.CP)){
+        if(main.test(currentcp.CP)){
             currentcp = yes(currentcp)
         } else {
             currentcp = no(currentcp)
