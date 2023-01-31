@@ -112,7 +112,7 @@ export const MAIN = {
           ],
           "edges_assignment": [
             "M",
-            "V",
+            "M",
             "B",
             "B",
             "B",
