@@ -32,37 +32,37 @@ const MAIN = {
         // })) {
         //     main.setAttribute(k, v);
         // }
-        for (const [i, id] of ["flat", "cell", "fold"].entries()) {
-            const svg = document.getElementById(id);
-            for (const [k, v] of Object.entries({
-                xmlns: SVG.NS,
-                height: s,
-                width: s,
-                x: i*s,
-                y: 0,
-                viewBox: [-b, -b, s + 2*b, s + 2*b].join(" "),
-            })) {
-                svg.setAttribute(k, v);
-            }
-        }
-        const limit_select = document.getElementById("limit_select");
-        for (const val of ["all", 1000, 100, 10, 1]) {
-            const el = document.createElement("option");
-            el.setAttribute("value", val);
-            el.textContent = val;
-            limit_select.appendChild(el);
-        }
-        document.getElementById("import").onchange = (e) => {
-            if (e.target.files.length > 0) {
-                const file_reader = new FileReader();
-                file_reader.onload = MAIN.process_file;
-                file_reader.readAsText(e.target.files[0]);
-            }
-        };
-        document.getElementById("side").onclick = (e) => {
-            const side = ((e.target.value == "+") ? "-" : "+");
-            e.target.setAttribute("value", side);
-        };
+        // for (const [i, id] of ["flat", "cell", "fold"].entries()) {
+        //     const svg = document.getElementById(id);
+        //     for (const [k, v] of Object.entries({
+        //         xmlns: SVG.NS,
+        //         height: s,
+        //         width: s,
+        //         x: i*s,
+        //         y: 0,
+        //         viewBox: [-b, -b, s + 2*b, s + 2*b].join(" "),
+        //     })) {
+        //         svg.setAttribute(k, v);
+        //     }
+        // }
+        // const limit_select = document.getElementById("limit_select");
+        // for (const val of ["all", 1000, 100, 10, 1]) {
+        //     const el = document.createElement("option");
+        //     el.setAttribute("value", val);
+        //     el.textContent = val;
+        //     limit_select.appendChild(el);
+        // }
+        // document.getElementById("import").onchange = (e) => {
+        //     if (e.target.files.length > 0) {
+        //         const file_reader = new FileReader();
+        //         file_reader.onload = MAIN.process_file;
+        //         file_reader.readAsText(e.target.files[0]);
+        //     }
+        // };
+        // document.getElementById("side").onclick = (e) => {
+        //     const side = ((e.target.value == "+") ? "-" : "+");
+        //     e.target.setAttribute("value", side);
+        // };
         NOTE.time("Computing constraint implication maps");
         CON.build();
         NOTE.end();
