@@ -75,14 +75,15 @@ const MAIN = {
         NOTE.end();
     },
     process_file: (e) => {
+        //directly pass in the cp as a json object
         NOTE.clear_log();
         NOTE.start("*** Starting File Import ***");
-        const doc = e//.target.result;
         const file_name = "file"//document.getElementById("import").value;
         //const parts = file_name.split(".");
         const type = 'fold' //parts[parts.length - 1].toLowerCase();
+        console.log(e)
         NOTE.time(`Importing from file ${file_name}`);
-        const [V, VV, EV, EA, EF, FV] = IO.doc_type_2_V_VV_EV_EA_EF_FV(doc, type);
+        const [V, VV, EV, EA, EF, FV] = IO.doc_type_2_V_VV_EV_EA_EF_FV(e, type);
         if (V == undefined) { return; }
         const VK = X.V_VV_EV_EA_2_VK(V, VV, EV, EA);
         NOTE.annotate(V, "vertices_coords");
