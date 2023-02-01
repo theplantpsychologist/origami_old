@@ -90,7 +90,7 @@ function start(input){
     //note: will need to run a split/merge function to clean it up before processing
     inputcp = readCpFile(input);
     displaycp1.clear();
-    displaycp1 = displayCp(inputcp,10,50,390,430)
+    displaycp1 = displayCp(inputcp,10,5,390,385)
 
     if(!inputcp.angularFoldable){
         alert("This crease pattern has local flat foldability issues. Please fix the highlighted vertices and try again.")
@@ -98,6 +98,7 @@ function start(input){
     }
     inputcp.foldXray(); //already
     try{displayxray.clear()}catch{}
+    document.getElementById("creasecount").innerHTML = `Creases: ${inputcp.creases.length} | Faces:${inputcp.faces.length}`
     displayxray = inputcp.displayXray(200,640,380);
 
     currentcp = new PotentialCP(structuredClone(inputcp),null)
@@ -109,8 +110,8 @@ function start(input){
     currentcp.CP.faces.forEach(element => element.assigned? currentcp.CP.assignedFaces.push(element):null)
 
     displaycp2.clear()
-    displaycp2 = displayCp(currentcp.CP,410,50,790,430)
-    displaycp2.addChild(displayAssignedFaces(currentcp.CP,410,50,790,430))
+    displaycp2 = displayCp(currentcp.CP,410,5,790,385)
+    displaycp2.addChild(displayAssignedFaces(currentcp.CP,410,5,790,385))
 
 }
 
@@ -148,6 +149,7 @@ function yes(currentcp){
     if(currentcp.CP.assignedFaces.length == currentcp.CP.faces.length){
         currentcp.done = 'success'
         solutions.push(currentcp)
+        document.getElementById("solutioncount").innerHTML = `Currently showing solution ${allSolutions.indexOf(currentcp)} out of ${allSolutions.length} solutions found `
         return currentcp
     }
     currentcp = currentcp.createChild()    
@@ -158,8 +160,8 @@ function yes(currentcp){
 
     
     displaycp2.clear()
-    displaycp2 = displayCp(currentcp.CP,410,50,790,430)
-    displaycp2.addChild(displayAssignedFaces(currentcp.CP,410,50,790,430))
+    displaycp2 = displayCp(currentcp.CP,410,5,790,385)
+    displaycp2.addChild(displayAssignedFaces(currentcp.CP,410,5,790,385))
     return currentcp
 }
 
@@ -179,8 +181,8 @@ function no(currentcp){
         return no(currentcp)
     }
     displaycp2.clear()
-    displaycp2 = displayCp(currentcp.CP,410,50,790,430)
-    displaycp2.addChild(displayAssignedFaces(currentcp.CP,410,50,790,430))
+    displaycp2 = displayCp(currentcp.CP,410,5,790,385)
+    displaycp2.addChild(displayAssignedFaces(currentcp.CP,410,5,790,385))
     return currentcp
     
 }
