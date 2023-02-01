@@ -98,7 +98,7 @@ function start(input){
     }
     inputcp.foldXray(); //already
     try{displayxray.clear()}catch{}
-    document.getElementById("creasecount").innerHTML = `Creases: ${inputcp.creases.length} | Faces:${inputcp.faces.length}`
+    document.getElementById("creasecount").innerHTML = `Creases: ${inputcp.creases.length} | Faces: ${inputcp.faces.length}`
     displayxray = inputcp.displayXray(200,640,380);
 
     currentcp = new PotentialCP(structuredClone(inputcp),null)
@@ -149,7 +149,7 @@ function yes(currentcp){
     if(currentcp.CP.assignedFaces.length == currentcp.CP.faces.length){
         currentcp.done = 'success'
         solutions.push(currentcp)
-        document.getElementById("solutioncount").innerHTML = `Currently showing solution ${solutions.indexOf(currentcp)} out of ${allSolutions.length} solutions found `
+        document.getElementById("solutioncount").innerHTML = `Solution ${solutions.indexOf(currentcp)+1} out of ${allSolutions.length} solutions found `
         return currentcp
     }
     currentcp = currentcp.createChild()    
