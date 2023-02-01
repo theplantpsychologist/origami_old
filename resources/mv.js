@@ -149,7 +149,7 @@ function yes(currentcp){
     if(currentcp.CP.assignedFaces.length == currentcp.CP.faces.length){
         currentcp.done = 'success'
         solutions.push(currentcp)
-        document.getElementById("solutioncount").innerHTML = `Solution ${solutions.indexOf(currentcp)+1} out of ${allSolutions.length} solutions found `
+        document.getElementById("solutioncount").innerHTML = `Solution ${solutions.indexOf(currentcp)+1} out of ${solutions.length} solutions found `
         return currentcp
     }
     currentcp = currentcp.createChild()    
