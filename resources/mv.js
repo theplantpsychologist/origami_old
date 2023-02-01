@@ -10,7 +10,6 @@ Things to work on:
  - inputting .FOLD or other formats
  - safer ui (watch out for double clicking and whatnot)
  - fix x ray display
-
  */
 
 
