@@ -262,14 +262,5 @@ function displayAssignedFaces(CP,x1,y1,x2,y2){
     */
     return faces
 }
-function checkLocalFlatFoldability(CP){
-    //return true if there are no problems. return false if there are any issues.
-    for(const vertex of CP.vertices){
-        if(!isVertexFlatFoldable(vertex)){
-            //console.log(vertex.x,vertex.y,vertex.reason)
-            return false
-        }
-    }
-    return true
-}
+
 

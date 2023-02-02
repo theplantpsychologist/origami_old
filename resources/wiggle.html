@@ -24,7 +24,7 @@
         <div>
             <noscript>Please enable javascript to use this app.</noscript>
             <p>
-                <b>How to use:</b> upload a .FOLD file, make it messy, and reupload it to see if the cleanup function works.
+                <b>How to use:</b> upload a .cp file, make it messy, and see if it can clean it up. Click upload again to reset.
             </p>
             <div>
                 
@@ -53,13 +53,14 @@
 
         <div>
             <button type = button onclick="cp = messy(cp)">Add noise</button>
-            <button type = button onclick="cp = cleanup(cp)">Clean up</button>
+            <button type = button onclick="cp = cleanup(cp)">Clean up once</button>
+            <button type = button onclick="cp = cleanupAll(cp)">Clean up until completely fixed</button>
         </div>
         <div>
             <p>Noise Constant</p>
-            <input type="text" id="noiseConstant" value="0.1">
+            <input type="text" id="noiseConstant" value="0.5">
             <p>Learning rate</p>
-            <input type="text" id="learningRate" value="0.2">
+            <input type="text" id="learningRate" value="0.01">
         </div>
         <hr>
         <canvas id="square" width="800" height = "900"></canvas>
@@ -84,7 +85,7 @@
 
             function messy(cp){
                 for(const vertex of cp.vertices){
-                    const noise = parseInt(noiseConstant.value)
+                    const noise = parseFloat(noiseConstant.value)
                     vertex.x += (Math.random() - 0.5) * vertex.x*(1-vertex.x) * noise
                     vertex.y += (Math.random() - 0.5) * vertex.y*(1-vertex.y) * noise
                 }
@@ -113,7 +114,7 @@
                 for(const vertex of cp.vertices){
                     isVertexFlatFoldable(vertex)
                 }
-                const alpha = parseInt(learningRate.value) //learning rate
+                const alpha = parseFloat(learningRate.value) //learning rate
                 //x = x-dx
                 //dx = alpha * the partial derivative of the cost function, with respect to x
                 //in other words, the partial derivative is how much error is produced by a given dx
@@ -154,6 +155,18 @@
                 return cp
             }
 
+            function cleanupAll(cp){
+                var stopper = 0;
+                while(stopper<500){
+                    if(checkLocalFlatFoldability(cp)){console.log("looks pretty good");return cp}
+                    cp = cleanup(cp)
+                    stopper++
+                }
+                console.log("tried",stopper,"times")
+                return cp
+            }
+            
+            start(noisyCp.split('\n'))
         </script>
 
         <div>

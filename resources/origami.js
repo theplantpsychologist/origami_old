@@ -867,6 +867,16 @@ function isVertexFlatFoldable(vertex){
 
     else{vertex.angularFoldable=true;vertex.reason = "default"; return true}
 }
+function checkLocalFlatFoldability(CP){
+    //return true if there are no problems. return false if there are any issues.
+    for(const vertex of CP.vertices){
+        if(!isVertexFlatFoldable(vertex)){
+            //console.log(vertex.x,vertex.y,vertex.reason)
+            return false
+        }
+    }
+    return true
+}
 
 //global flat foldability
 function testGlobal(cp){
@@ -1215,5 +1225,6 @@ function displayStacks(xc,yc,scale,cp){
         text.content = stack.subfaces.length
     }
 }
+
 
 
