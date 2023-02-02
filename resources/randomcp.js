@@ -14,6 +14,7 @@ Features to add, prioritized
 - figure out how to sync up with origami simulator--to impress the non folders
 - connect to neural network somehow? back propagate to regenerate seed
 - teach neural net to create seed for given x ray. once the x ray is close enough, assign mv. now have 2d figure generation
+    - use random seed to generate the x ray. then assign mv (and final layer ordering) to get the actual shape to look right
 - in the seed: what's the best ratio between lateral and diagonal creases?
 */
 
