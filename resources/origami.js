@@ -450,7 +450,7 @@ function convertFOLD(cp) {
     var edges_vertices = []
     var edges_assignment = []
     var faces_vertices = []
-    for(const face of cp.faces){
+    for(const face of cp.assignedfaces){
         var facevertices = []
         for(const vertex of face.vertices){
             var index = vertices_coords.findIndex(item => item[0]==vertex.x & item[1]==vertex.y)
@@ -477,7 +477,35 @@ function convertFOLD(cp) {
     return cpobject
 }
 function downloadFOLD(cp){
-    cpobject = convertFOLD(cp)
+    var vertices_coords = []
+    var edges_vertices = []
+    var edges_assignment = []
+    var faces_vertices = []
+    for(const face of cp.faces){
+        var facevertices = []
+        for(const vertex of face.vertices){
+            var index = vertices_coords.findIndex(item => item[0]==vertex.x & item[1]==vertex.y)
+            if(index == -1){index = vertices_coords.length; vertices_coords.push([vertex.x,vertex.y])}
+            facevertices.push(index)
+        }
+        for(const crease of face.creases){
+            var index1 = vertices_coords.findIndex(item => item[0]==crease.vertices[0].x & item[1]==crease.vertices[0].y)
+            var index2 = vertices_coords.findIndex(item => item[0]==crease.vertices[1].x & item[1]==crease.vertices[1].y)
+            if(edges_vertices.findIndex(item =>haveSameContents(item,[index1,index2]))== -1){
+                if(crease.mv == 'E'){edges_assignment.push("B")}
+                if(crease.mv == 'A'){edges_assignment.push("U")}
+                else{edges_assignment.push(crease.mv)}
+                edges_vertices.push([index1,index2])
+            }
+        }
+        faces_vertices.push(facevertices)
+    }
+    var cpobject = {
+        "vertices_coords":vertices_coords,
+        "edges_vertices": edges_vertices,
+        "edges_assignment": edges_assignment,
+        "faces_vertices":faces_vertices
+    }
     cpobject['vertices_coords'].forEach((element) => element = [element[0]*400 - 200, element[1]*400 - 200])
     contents = JSON.stringify(cpobject)
     var element = document.createElement('a');
