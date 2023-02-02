@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Random Cp</title>
+    <link rel="stylesheet" type = "text/css" href="../style.css">
+</head>
+<body>
+    <div id='wrapper'>
+        <div id='head'>
+            <a id = "name" href="../index.html"><img src="../img/logo.svg" style="width: 50%;" alt="logo"></a>
+            <hr>
+            <div id='navigator'>
+                <a class="navlink" href="../index.html">Home</a>
+                <a class="navlink" href="../about.html">Origami</a>
+                <a class="navlink" href="../resources.html">Resources</a>
+                <a class="navlink" href="../other.html">Other</a>
+            </div>
+        </div>
+        <hr>
+        <h1>Random Cp Generator</h1>
+        <div>
+            <p>Grid size: (recommended 4-16)</p>
+            <input type="text" id="gridsize" value="8">
+            <br>
+            <p>Initial crease density (recommended ~0.1, but much smaller for larger grids)</p><input type="text" id="creasedensity" value = "0.1">
+        </div>
+        <br>
+        <canvas id="square" width="400" height = "400"></canvas>
+        <script src="paper-core.js"></script>
+        <script src="origami.js"></script>
+        <script src="mv.js"></script>
+        <script src="randomcp.js"></script>
+        <script type = "module">
+            import {MAIN} from "./src/main.js";
+            window.main = MAIN; 
+        </script>
+        <script type="text/javascript" data-paper-ignore="true">
+            paper.setup(document.getElementById("square"))
+            var border = new paper.Path.Rectangle(0,0,400,400);
+            border.strokeColor = 'black';
+            border.strokeWidth = 4;
+            var grid = null
+            var density = null
+        </script>
+        <div>
+            <button type = button onclick="cp = generate()">Generate random cp</button>
+            <button type = button onclick="assignmv(cp)">Assign mountain/valley</button>
+            <button type = button onclick="download()">Save as .cp file</button>
+        </div> 
+    </div>
+</body>
+</html>

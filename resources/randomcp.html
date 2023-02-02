@@ -20,7 +20,7 @@
             </div>
         </div>
         <hr>
-        <h1>Random Cp Generator</h1>
+        <h1>Random Cp Generator (old)</h1>
         <div>
             <p>Grid size: (recommended 4-16)</p>
             <input type="text" id="gridsize" value="8">
@@ -134,8 +134,8 @@
             
                 step1()
                 step2()
-                step3()
-                //display() //crease data is global
+                //step3()
+                display() //crease data is global
                 // var done = false 
                 // var stop_ = 0;
                 // while(!done && stop_<50){
@@ -456,7 +456,7 @@
                 //To decide now, first look at available directions. If there are any adjacent vertices who are also invalid or are on the edge, choose it.
                 //If not, then pick any random direction, then run step 2b.
                 //note: this one can use invalids instead of vertices since step2() will check for invalids before running step2c()
-                console.log('running step 2c', brake)
+                //console.log('running step 2c', brake)
                 loop: for(var i = 0; i< vertices.length; i++){
                     vertices[i].getCreasesAsVectors;
                     vertices[i].getAngles;
@@ -705,7 +705,7 @@
                 scale = 400/grid
                 for(var i = 0; i<creases.length; i++){
                     //add each crease
-                    cpFile += (creases[i].mv=='red'? '2 ':'3 ') + `${creases[i].vertices[0].x*scale-200} ${creases[i].vertices[0].y*-1*scale+200} ${creases[i].vertices[1].x*scale-200} ${creases[i].vertices[1].y*-1*scale+200}\n`
+                    cpFile += (creases[i].mv=='red'? '4 ':'4 ') + `${creases[i].vertices[0].x*scale-200} ${creases[i].vertices[0].y*-1*scale+200} ${creases[i].vertices[1].x*scale-200} ${creases[i].vertices[1].y*-1*scale+200}\n`
                 }
                 for(var i = 0; i<grid; i++){
                     //add the border
