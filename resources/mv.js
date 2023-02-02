@@ -1,6 +1,9 @@
 /*
 Things to work on:
  - improve computation time/size limit. (for scale, oriedita folds 1500 crease cp in 2.7 secs)
+    -   one way would be to further modify the internals of flat folder but remove the constraint conditions set by the mv.
+        then the run time would be similar to flat folder but would find a lot of solutions. bc it's not just all the mv assignments,
+        but also all the layer orderings of each mv assignment
 
 
  - finding next solution, and/or all solutions
