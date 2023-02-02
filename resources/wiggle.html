@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wiggler</title>
+    <link rel="stylesheet" type = "text/css" href="../style.css">
+</head>
+<body>
+    <div id='wrapper'>
+        <div id='head'>
+            <a id = "name" href="../index.html"><img src="../img/logo.svg" style="width: 50%;" alt="logo"></a>
+            <hr>
+            <div id='navigator'>
+                <a class="navlink" href="../index.html">Home</a>
+                <a class="navlink" href="../about.html">Origami</a>
+                <a class="navlink" href="../resources.html">Resources</a>
+                <a class="navlink" href="../other.html">Other</a>
+            </div>
+        </div>
+        <hr>
+        <h1>Messy cp wiggler</h1>
+        <div>
+            <noscript>Please enable javascript to use this app.</noscript>
+            <p>
+                <b>How to use:</b> upload a .FOLD file, make it messy, and reupload it to see if the cleanup function works.
+            </p>
+            <div>
+                
+                <input type="file" id="inputfile" name="inputfile" value="example.cp" />
+                <pre id="output"></pre>
+                <script>
+                    function UploadCp() {
+                        const reader = new FileReader();
+                        reader.onload = function () {
+                            input = reader.result.split("\n");
+                            start(input);
+                        };
+                        const fileSelector = document.getElementById("inputfile");
+                        if (fileSelector) {
+                            reader.readAsText(fileSelector.files[0]);
+                        } else {
+                            console.log("File input element not present");
+                        }
+                    }
+                </script>
+                <button id="upload" type=button onclick="UploadCp()">Upload</button>
+
+
+            </div>
+        </div>
+
+        <div>
+            <button type = button onclick="currentcp = dfs(currentcp)">Find first solution</button>
+            <button type = button onclick="currentcp = nextSolution(currentcp)">Find next solution</button>
+        <hr>
+        <canvas id="square" width="800" height = "900"></canvas>
+        <script src="paper-core.js"></script>
+        <script src="origami.js"></script> 
+
+        <script type="text/javascript" data-paper-ignore="true">
+            paper.setup(document.getElementById("square"))
+
+        </script>
+
+        <div>
+            <h2>Notes about this program</h2>
+            <p><b>How it works:</b> Gradient descent
+        </div>
+    </div>
+</body>
+</html>
