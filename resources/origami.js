@@ -450,7 +450,7 @@ function convertFOLD(cp) {
     var edges_vertices = []
     var edges_assignment = []
     var faces_vertices = []
-    for(const face of cp.assignedFaces){
+    for(const face of cp.faces){
         var facevertices = []
         for(const vertex of face.vertices){
             var index = vertices_coords.findIndex(item => item[0]==vertex.x & item[1]==vertex.y)
@@ -482,7 +482,7 @@ function downloadFOLD(cp){
     contents = JSON.stringify(cpobject)
     var element = document.createElement('a');
     element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(contents));
-    element.setAttribute('download', 'output.FOLD');
+    element.setAttribute('download', 'output.fold');
     element.style.display = 'none';
     document.body.appendChild(element);
     element.click();
