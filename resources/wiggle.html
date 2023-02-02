@@ -34,8 +34,8 @@
                     function UploadCp() {
                         const reader = new FileReader();
                         reader.onload = function () {
-                            input = reader.result.split("\n");
-                            start(input);
+                            input = reader.result;
+                            cp = start(input);
                         };
                         const fileSelector = document.getElementById("inputfile");
                         if (fileSelector) {
@@ -52,8 +52,8 @@
         </div>
 
         <div>
-            <button type = button onclick="currentcp = dfs(currentcp)">Find first solution</button>
-            <button type = button onclick="currentcp = nextSolution(currentcp)">Find next solution</button>
+            <button type = button onclick="cp = messy(cp)">Add noise</button>
+            <button type = button onclick="cp = cleanup(cp)">Clean up</button>
         <hr>
         <canvas id="square" width="800" height = "900"></canvas>
         <script src="paper-core.js"></script>
@@ -61,6 +61,24 @@
 
         <script type="text/javascript" data-paper-ignore="true">
             paper.setup(document.getElementById("square"))
+
+            var cp
+
+            function start(input){
+                var cp =  readFoldFile(input)
+                //cp.foldXray()
+                displaycp1 = displayCp(cp,10,5,390,385)
+                return cp
+            }
+            function messy(cp){
+                for(const vertex of cp.vertices){
+                    vertex.x += (Math.random() - 0.5) * vertex.x*(1-vertex.x) * 0.2
+                    vertex.y += (Math.random() - 0.5) * vertex.y*(1-vertex.y) * 0.2
+                }
+                displaycp1.clear();
+                displaycp1 = displayCp(cp,10,5,390,385)
+                return cp
+            }
 
         </script>
 

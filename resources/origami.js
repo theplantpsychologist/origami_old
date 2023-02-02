@@ -240,6 +240,7 @@ function readCpFile(file){
     //Returns a CP object
 
     //For now, we're assuming the cp is in the [-200,200] box, and will ignore all edge lines
+    file = file.split('\n')
     function convert(coord){
         return (coord+200)/400;
     }
@@ -323,6 +324,32 @@ function readCpFile(file){
             edges[j][i+1].creases.push(edgeCrease)
         }
     }}
+    return new CP(vertices,creases)
+}
+function readFoldFile(file){
+    var cpobject = JSON.parse(file) //the input is split by line oops 
+    function convert(coord){
+        if(cpobject["file_creator"]=="flat-folder"){return} //flat folder also uses [0,1]
+        if(cpobject["file_creator"]=="oriedita")return (coord+200)/400; //oriedita uses [-200,200]
+        else return
+    }
+    var vertices = []
+    var creases = []
+    for(const coord of cpobject["vertices_coords"]){
+        vertices.push(new Vertex(convert(coord[0]),convert(coord[1])))
+    }
+    cpobject["edges_vertices"].forEach(
+        (crease,index)=>creases.push(new Crease(vertices[crease[0]],vertices[crease[1]],
+            cpobject["edges_assignment"][index]=="B"?"E":
+            cpobject["edges_assignment"][index]=="U"?"A":
+            cpobject["edges_assignment"][index]
+        ))
+    )
+    for(const crease of creases){
+        for(const vertex of crease.vertices){
+            vertex.creases.push(crease)
+        }
+    }
     return new CP(vertices,creases)
 }
 function downloadCP(cp) {

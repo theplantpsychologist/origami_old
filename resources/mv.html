@@ -38,7 +38,7 @@
                     function UploadCp() {
                         const reader = new FileReader();
                         reader.onload = function () {
-                            input = reader.result.split("\n");
+                            input = reader.result;
                             start(input);
                         };
                         const fileSelector = document.getElementById("inputfile");
