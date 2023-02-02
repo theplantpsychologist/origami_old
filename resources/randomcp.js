@@ -180,6 +180,7 @@ function fixMaekawa(vertex,cp){
 }
 function fixKawasaki(vertex){
     if(vertex.reason != 'angle sum'){console.log(vertex.reason);throw new Error('this is not a kawasaki error')}
+    //if you have to create new creases, prefer having the first one be lateral and then use maekawa to add the other
 }
 
 
