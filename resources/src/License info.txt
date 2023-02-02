@@ -1,0 +1,4 @@
+Copyright (c) 2022 Jason S. Ku (origamimagiro)
+
+Use of this source code is governed by a MIT license that can be found in the original repository.
+https://github.com/origamimagiro/flat-folder/blob/main/LICENSE
