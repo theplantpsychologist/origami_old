@@ -24,7 +24,11 @@
         <div>
             <noscript>Please enable javascript to use this app.</noscript>
             <p>
-                <b>How to use:</b> upload a .cp file, make it messy, and see if it can clean it up. Click upload again to reset.
+                <b>How to use:</b> upload a .cp file, make it messy, and see if it can clean it up--or upload a file that 
+                is already messy. Click "upload" again to reset.
+                <br><br>
+                The "noise constant" determines how much distortion will be applied to the cp. The "learning rate" determines
+                how fast the wiggling is applied--lower rates will take longer, but higher rates may never converge.
             </p>
             <div>
                 
@@ -32,17 +36,19 @@
                 <pre id="output"></pre>
                 <script>
                     function UploadCp() {
-                        const reader = new FileReader();
-                        reader.onload = function () {
-                            input = reader.result;
-                            cp = start(input);
-                        };
-                        const fileSelector = document.getElementById("inputfile");
-                        if (fileSelector) {
-                            reader.readAsText(fileSelector.files[0]);
-                        } else {
-                            console.log("File input element not present");
-                        }
+                        try{
+                            const reader = new FileReader();
+                            reader.onload = function () {
+                                input = reader.result;
+                                cp = start(input);
+                            };
+                            const fileSelector = document.getElementById("inputfile");
+                            if (fileSelector) {
+                                reader.readAsText(fileSelector.files[0]);
+                            } else {
+                                console.log("File input element not present");
+                            }
+                        }catch{ cp = start(noisyCp)} //it will fail if nothing's uploaded, but just use the default
                     }
                 </script>
                 <button id="upload" type=button onclick="UploadCp()">Upload</button>
@@ -54,16 +60,34 @@
         <div>
             <button type = button onclick="cp = messy(cp)">Add noise</button>
             <button type = button onclick="cp = cleanup(cp)">Clean up once</button>
-            <button type = button onclick="cp = cleanupAll(cp)">Clean up until completely fixed</button>
+            <button type = button onclick="cp = cleanupAll(cp)">Clean up completely</button>
+            <button type = button onclick="downloadCP(cp)">Download .cp</button>
+            <button type = button onclick="downloadFOLD(cp)">Download .fold</button>
         </div>
-        <div>
-            <p>Noise Constant</p>
-            <input type="text" id="noiseConstant" value="0.5">
-            <p>Learning rate</p>
-            <input type="text" id="learningRate" value="0.01">
+        <div style="display: table-row;text-align: center;width:auto;table-layout: fixed;">
+            <div style="display: table-cell;padding: 4px 6px;
+            width: 2%;">
+                <input type="text" id="noiseConstant" value="0.5">
+                <label for="noiseConstant">Noise Constant</label>
+            </div>
+            <div style="display: table-cell;padding: 4px 6px;
+            width: 2%;"> 
+                <input type="text" id="learningRate" value="0.01">
+                <label for="learningRate">Learning rate</label>
+            </div>
         </div>
         <hr>
-        <canvas id="square" width="800" height = "900"></canvas>
+        <div style="display: table-row;text-align: center;width:auto;table-layout: fixed;">
+            <div style="display: table-cell;padding: 4px 6px;width: 2%;">
+                <p>Messy crease pattern</p>
+                <p id = "messy"></p>
+            </div>
+            <div style="display: table-cell;padding: 4px 6px;width: 2%;"> 
+                <p>Cleaner crease pattern</p>
+                <p id = "clean"></p>
+            </div>
+        </div>
+        <canvas id="square" width="800" height = "410"></canvas>
         <script src="paper-core.js"></script>
         <script src="origami.js"></script> 
         <script src="example.js"></script>
@@ -107,35 +131,23 @@
 
 `
         </script>
-
         <script type="text/javascript" data-paper-ignore="true">
             paper.setup(document.getElementById("square"))
 
-            var cp
             var displaycp1 = new paper.Group();
             var displaycp2 = new paper.Group();
+            var cp = start(noisyCp)
 
             function start(input){
                 var cp =  readCpFile(input)
                 //cp.foldXray()
                 displaycp1.clear();
-                displaycp2.clear();
+                displaycp2.clear();//}catch{}//will fail if it's the first time, not a problem
                 displaycp1 = displayCp(cp,10,5,390,385)
+                document.getElementById("messy").innerHTML = `Error: ${Math.round(calculateError(cp)*100000)/100000}`
                 return cp
             }
-
-            function messy(cp){
-                for(const vertex of cp.vertices){
-                    const noise = parseFloat(noiseConstant.value)
-                    vertex.x += (Math.random() - 0.5) * vertex.x*(1-vertex.x) * noise
-                    vertex.y += (Math.random() - 0.5) * vertex.y*(1-vertex.y) * noise
-                }
-                for(const vertex of cp.vertices){
-                    isVertexFlatFoldable(vertex)
-                }
-                displaycp1.clear();
-                displaycp1 = displayCp(cp,10,5,390,385)
-
+            function calculateError(cp){
                 error = 0
                 for(const vertex of cp.vertices){
                     //Each term of the error function corresponds to the squared kawasaki error of a non-edge vertex
@@ -147,7 +159,21 @@
                     }
                     error += kawasaki**2
                 }
-                console.log('Error',error)
+                return error
+            }
+            function messy(cp){
+                for(const vertex of cp.vertices){
+                    const noise = parseFloat(noiseConstant.value)
+                    vertex.x += (Math.random() - 0.5) * vertex.x*(1-vertex.x) * noise
+                    vertex.y += (Math.random() - 0.5) * vertex.y*(1-vertex.y) * noise
+                }
+                for(const vertex of cp.vertices){
+                    isVertexFlatFoldable(vertex)
+                }
+                displaycp1.clear();
+                displaycp1 = displayCp(cp,10,5,390,385)
+                document.getElementById("messy").innerHTML = `Error: ${Math.round(calculateError(cp)*100000)/100000}`
+                console.log("error after adding noise is", calculateError(cp).toFixed(6))
                 return cp
             }
 
@@ -170,7 +196,7 @@
                     //Each term of the error function corresponds to the squared kawasaki error of a non-edge vertex
                     //
                     if(eq(vertex.x*(1-vertex.x)*vertex.y*(1-vertex.y),0)){continue}
-                    var error = 0
+                    var error = 0 //the local error for this one vertex
                     for(i = 0; i<vertex.sectors.length; i++){error += (-1)**i * vertex.sectors[i]}//really this will be squared when added to the cost function
                     if(eq(error,0)){continue}
 
@@ -193,26 +219,51 @@
                 }
                 displaycp2.clear()
                 displaycp2 = displayCp(cp,410,5,790,385)
+                document.getElementById("clean").innerHTML = `Error: ${Math.round(calculateError(cp)*100000)/100000}`
                 return cp
             }
 
             function cleanupAll(cp){
                 var stopper = 0;
                 while(stopper<500){
-                    if(checkLocalFlatFoldability(cp)){console.log("looks pretty good");return cp}
+                    for(const vertex in cp.vertices){
+                        if(Math.max(vertex.x,vertex.y)>1.1 | Math.min(vertex.x,vertex.y)<-0.1){
+                            console.log("something went wrong",calculateError(cp));
+                            return cp
+                        }
+                    }
                     cp = cleanup(cp)
+                    if(checkLocalFlatFoldability(cp)){
+                        cp = cleanup(cp)
+                        cp = cleanup(cp)
+                        cp = cleanup(cp) //just be thorough
+                        console.log("looks pretty good",calculateError(cp));
+                        return cp}
+
                     stopper++
                 }
-                console.log("tried",stopper,"times")
+                console.log("tried",stopper,"times, error is",calculateError(cp))
                 return cp
             }
             
-            cp = start(noisyCp)
         </script>
 
         <div>
             <h2>Notes about this program</h2>
-            <p><b>How it works:</b> Gradient descent
+            <p><b>How it works:</b> The error is the squared sum of all the kawasaki errors (alternating sum of sector angles) 
+                in the vertices of the crease pattern. Each vertex then gets a degree of freedom in the x and y direction (unless 
+                it's fixed to an edge or corner) and we apply gradient descent to move each vertex until the error approaches 0.
+                <br><br>
+                Currently, the learning rate is set manually. In the future, there may be a better way to pick the optimal learning rate.
+            </p>
+            <br>
+            <p>
+                Although there may still be purple circles present, it may have reached an error acceptably small enough that it can be 
+                used in Oriedita and other programs. You can try pressing "clean up once" several more times and the circles should go away.
+                <br><br>
+                It may also be the case that the purple circles are there because of mv errors. This is not something that Wiggler 
+                can solve (although the big-little-big lemma should be something Wiggler may be able to take into consideration in future updates)
+            </p>
         </div>
     </div>
 </body>

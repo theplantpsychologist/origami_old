@@ -546,7 +546,7 @@ function downloadFOLD(cp){
 
 //basic operations
 function eq(a,b){
-    if(Math.abs(a-b)>10**(-7)){return false} else {return true}
+    if(Math.abs(a-b)>10**(-10)){return false} else {return true}
 }
 function dot(v1,v2){
     return v1[0]*v2[0] + v1[1]*v2[1]
