@@ -29,9 +29,6 @@
                 <br><br>
                 <b>How to use:</b> upload a .cp file, make it messy, and see if it can clean it up--or upload a file that 
                 is already messy. Click "upload" again to reset.
-                <br><br>
-                The "noise constant" determines how much distortion will be applied to the cp. The "learning rate" determines
-                how fast the wiggling is applied--lower rates will take longer, but higher rates may never converge.
             </p>
             <div>
                 
@@ -62,7 +59,7 @@
 
         <div>
             <button type = button onclick="cp = messy(cp)">Add noise</button>
-            <button type = button onclick="cp = cleanup(cp)">Clean up once</button>
+            <button type = button onclick="cp = cleanup(cp,originalcp)">Clean up once</button>
             <button type = button onclick="cp = cleanupAll(cp)">Clean up completely</button>
             <button type = button onclick="downloadCP(cp)">Download .cp</button>
             <button type = button onclick="downloadFOLD(cp)">Download .fold</button>
@@ -77,6 +74,11 @@
             width: 2%;"> 
                 <input type="text" id="learningRate" value="0.01">
                 <label for="learningRate">Learning rate</label>
+            </div>
+            <div style="display: table-cell;padding: 4px 6px;
+            width: 2%;"> 
+                <input type="text" id="stickiness" value="0">
+                <label for="stickiness">Stickiness</label>
             </div>
         </div>
         <hr>
@@ -143,6 +145,7 @@
 
             function start(input){
                 var cp =  readCpFile(input)
+                var originalcp = structuredClone(cp)
                 //cp.foldXray()
                 displaycp1.clear();
                 displaycp2.clear();//}catch{}//will fail if it's the first time, not a problem
@@ -151,6 +154,7 @@
                 return cp
             }
             function calculateError(cp){
+                `Add up the sum of every other sector.`
                 error = 0
                 for(const vertex of cp.vertices){
                     //Each term of the error function corresponds to the squared kawasaki error of a non-edge vertex
@@ -165,6 +169,7 @@
                 return error
             }
             function messy(cp){
+                `Distort all the vertices. Vertices further from the edge will distort more.`
                 for(const vertex of cp.vertices){
                     const noise = parseFloat(noiseConstant.value)
                     vertex.x += (Math.random() - 0.5) * vertex.x*(1-vertex.x) * noise
@@ -177,14 +182,16 @@
                 displaycp1 = displayCp(cp,10,5,390,385)
                 document.getElementById("messy").innerHTML = `Error: ${Math.round(calculateError(cp)*100000)/100000}`
                 console.log("error after adding noise is", calculateError(cp).toFixed(6))
+                originalcp = structuredClone(cp)
                 return cp
             }
 
-            function cleanup(cp){
-                for(const vertex of cp.vertices){
-                    isVertexFlatFoldable(vertex)
-                }
+            function cleanup(cp,originalcp){
+                `This is where the gradient descent actually happens. For each vertex, the program calculates the partial derivative
+                of the total error function with respect to its x and y coordinates. At the end, all vertices move together.`
+                for(const vertex of cp.vertices){isVertexFlatFoldable(vertex)} //make sure angles are up to date
                 const alpha = parseFloat(learningRate.value) //learning rate
+                const beta = parseFloat(stickiness.value) //coefficient for how much the program values sticking to the original input
                 //x = x-dx
                 //dx = alpha * the partial derivative of the cost function, with respect to x
                 //in other words, the partial derivative is how much error is produced by a given dx
@@ -194,7 +201,11 @@
                     //and add to the respective dy or dx
                 //At the end, each coordinate will subtract the dy or dx, times the learning rate
 
-                for(const vertex of cp.vertices){vertex.dx = 0; vertex.dy = 0} //initialize
+                for(let i=0; i<cp.vertices.length; i++){
+                    //initialize dx and dy, also add the beta factor
+                    cp.vertices[i].dx = beta*(cp.vertices[i].x - originalcp.vertices[i].x); 
+                    cp.vertices[i].dy = beta*(cp.vertices[i].y - originalcp.vertices[i].y);
+                }
                 for(const vertex of cp.vertices){
                     //Each term of the error function corresponds to the squared kawasaki error of a non-edge vertex
                     //
@@ -228,18 +239,15 @@
 
             function cleanupAll(cp){
                 var stopper = 0;
-                while(stopper<500){
+                while(stopper<1000){
                     for(const vertex in cp.vertices){
                         if(Math.max(vertex.x,vertex.y)>1.1 | Math.min(vertex.x,vertex.y)<-0.1){
                             console.log("something went wrong",calculateError(cp));
                             return cp
                         }
                     }
-                    cp = cleanup(cp)
+                    cp = cleanup(cp,originalcp)
                     if(checkLocalFlatFoldability(cp)){
-                        cp = cleanup(cp)
-                        cp = cleanup(cp)
-                        cp = cleanup(cp) //just be thorough
                         console.log("looks pretty good",calculateError(cp));
                         return cp}
 
@@ -257,10 +265,13 @@
                 in the vertices of the crease pattern. Each vertex then gets a degree of freedom in the x and y direction (unless 
                 it's fixed to an edge or corner) and we apply gradient descent to move each vertex until the error approaches 0.
                 <br><br>
-                Currently, the learning rate is set manually. In the future, there may be a better way to pick the optimal learning rate.
-            </p>
-            <br>
-            <p>
+                The "noise constant" determines how much distortion will be applied to the cp. The "learning rate" determines
+                how fast the wiggling is applied--lower rates will take longer, but higher rates may never converge. "Stickiness"
+                is a factor of how much it prioritizes not drifting too far away--which helps prevent it from going too far off,
+                and also is more faithful to the original input. However, it could mean the converged solution will have a bit of
+                error that will never go away. These coefficients are currently all set by hand--in the future, there might
+                be a better way.
+            <br><br>
                 Although there may still be purple circles present, it may have reached an error acceptably small enough that it can be 
                 used in Oriedita and other programs. You can try pressing "clean up once" several more times and the circles should go away.
                 <br><br>
