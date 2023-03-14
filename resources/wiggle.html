@@ -200,11 +200,11 @@
                 //Go through each term of the cost function, and within each term, take the partial with respect to all of its variables
                     //and add to the respective dy or dx
                 //At the end, each coordinate will subtract the dy or dx, times the learning rate
-
+                error = calculateError(cp)
                 for(let i=0; i<cp.vertices.length; i++){
                     //initialize dx and dy, also add the beta factor
-                    cp.vertices[i].dx = beta*(cp.vertices[i].x - originalcp.vertices[i].x); 
-                    cp.vertices[i].dy = beta*(cp.vertices[i].y - originalcp.vertices[i].y);
+                    cp.vertices[i].dx = beta*(cp.vertices[i].x - originalcp.vertices[i].x)*error; 
+                    cp.vertices[i].dy = beta*(cp.vertices[i].y - originalcp.vertices[i].y)*error;
                 }
                 for(const vertex of cp.vertices){
                     //Each term of the error function corresponds to the squared kawasaki error of a non-edge vertex
@@ -239,7 +239,9 @@
 
             function cleanupAll(cp){
                 var stopper = 0;
+                var error0
                 while(stopper<1000){
+                    error0 = calculateError(cp)
                     for(const vertex in cp.vertices){
                         if(Math.max(vertex.x,vertex.y)>1.1 | Math.min(vertex.x,vertex.y)<-0.1){
                             console.log("something went wrong",calculateError(cp));
@@ -247,6 +249,9 @@
                         }
                     }
                     cp = cleanup(cp,originalcp)
+                    if(calculateError(cp)>error0){console.log(error0,"local min");return cp}
+                    else{error0 = calculateError(cp)}
+
                     if(checkLocalFlatFoldability(cp)){
                         console.log("looks pretty good",calculateError(cp));
                         return cp}
