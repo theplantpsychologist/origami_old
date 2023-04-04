@@ -54,18 +54,28 @@
             <input type="text" id = "angle" value="45">
             <br>
             <label for="topInput">Positions of top creases: </label>
-            <input type="text" id="topInput" value = "[0,1,2]">
+            <input type="text" id="topInput" value = "[0,3,5]">
+            <!-- <input type="text" id="topInput" value = "[0,1,2,4,5]"> -->
             <br>
             <label for="bottomInput">Positions of bottom creases: </label>
-            <input type="text" id="bottomInput" value = "[1]">
+            <input type="text" id="bottomInput" value = "[2]">
+            <!-- <input type="text" id="bottomInput" value = "[1,3,4]"> -->
             <br>
             <label for="mvInput">Starting crease mv: </label>
             <input type="text" id = "mvInput" value = "V">
         </div>
 
         <div>
-            <button type = button onclick="start()">Build transition</button>
-            <button type = button onclick="simpleCase()">Run simple case</button>
+            <button type = button onclick="{
+                console.log('=====STARTING=====')
+                start()
+                console.log('=====FINISHED=====')
+            }">Build transition</button>
+            <button type = button onclick="{
+                console.log('=====STARTING=====')
+                simpleCase()
+                console.log('=====FINISHED=====')
+            }">Run simple case</button>
         </div> 
         
         <canvas id="square" width="500" height = "500"></canvas>
