@@ -54,57 +54,45 @@
             <input type="text" id = "angle" value="45">
             <br>
             <label for="topInput">Positions of top creases: </label>
-            <input type="text" id="topInput" value = "[0,1,3]">
+            <input type="text" id="topInput" value = "[0,1,2]">
+            <!-- <input type="text" id="topInput" value = "[0,1,2,4,5]"> -->
             <br>
             <label for="bottomInput">Positions of bottom creases: </label>
-            <input type="text" id="bottomInput" value = "[2]">
+            <input type="text" id="bottomInput" value = "[0,1,2]">
+            <!-- <input type="text" id="bottomInput" value = "[1,3,4]"> -->
             <br>
             <label for="mvInput">Starting crease mv: </label>
             <input type="text" id = "mvInput" value = "V">
         </div>
-        <button type = button onclick="{
-            start(JSON.parse(topInput.value).sort(),
-                    JSON.parse(bottomInput.value).sort()
-                )
-        }">Build transition</button>
+
         <div>
             <button type = button onclick="{
-                start([0,1,3,4],[0,1,3,4])
-            }">Test 1</button>
-
+                console.log('=====STARTING=====')
+                start()
+                console.log('=====FINISHED=====')
+            }">Build transition</button>
             <button type = button onclick="{
-                start([0,1,2],[3])
-            }">Test 2</button>
-
-            <button type = button onclick="{
-                start([0,1],[3,4])
-            }">Test 3</button>
-
-            <!-- <button type = button onclick="{
-                start([0,1],[3,4])
-            }">Test 3</button> -->
-
-            <button type = button onclick="{
-                start([0,1,2,3,4],[0,2,4])
-            }">Test 4</button>
+                console.log('=====STARTING=====')
+                simpleCase()
+                console.log('=====FINISHED=====')
+            }">Run simple case</button>
         </div> 
         
-        <canvas id="square" width="500" height = "500"></canvas>
+        <!-- <canvas id="square" width="500" height = "500"></canvas> -->
         <script src="paper-core.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@svgdotjs/svg.js@3.0/dist/svg.min.js"></script>
         <script src="origami.js"></script>
         <script src="transitions.js"></script>
-        <script type="text/javascript" data-paper-ignore="true">
-            paper.setup(document.getElementById("square"))
+        
+        <svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="300" height="300">
+            <rect width="100" height="100" fill="#f06"></rect>
+          </svg>
+        <script type="text/javascript">
+            
+            var draw = SVG().addTo('canvas').size(300, 300)
+            var rect = draw.rect(100, 100).attr({ fill: '#f06' })
 
-            var theta
-            var a 
-            var b
 
-            var displaycp = new paper.Group();
-
-            start(JSON.parse(topInput.value).sort(),
-                    JSON.parse(bottomInput.value).sort()
-                )
         </script>
 
         <div>
