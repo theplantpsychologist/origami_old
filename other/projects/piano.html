@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Piano</title>
+    <link rel="stylesheet" type = "text/css" href="../../style.css">
+</head>
+
+<body>  
+    <div id='wrapper'>
+        <div id='head'>
+            <a id = "name" href="../../index.html"><img src="../../img/logo.svg" style="width: 50%;" alt="logo"></a>
+            <hr>
+            <div id='navigator'>
+                <a class="navlink" href="../../index.html">Home</a>
+                <a class="navlink" href="../../about.html">Origami</a>
+                <a class="navlink" href="../../resources.html">Resources</a>
+                <a class="navlink" href="../../other.html">Portfolios</a>
+            </div>
+        </div>
+        <hr>
+        <div class ="model-page">
+            <br><a class="navlink" href="../mechanical.html">Back to maker portfolio</a>
+            <h1>Piano</h1>
+            <div class="model-photo">
+                <img src="../img/piano.jpg" alt="">
+                <p>August 2022</p>
+                <p>Personal project</p>
+                <p> Unlike a lot of other Asian American kids, I never had to learn piano as a kid, and in fact basically never touched a piano my whole life until college--so when I arrived to campus as a freshman, I decided to start dabbling around on the pianos in my dorm or other communal areas on campus. But in order to practice without everyone hearing me mess up, I thought it would be nice to have a small piano (at least two octaves) to practice on my own in my room. Thus, this project to 3d print a piano.
+                </p>
+            </div>
+            <br>
+            <div class="model-cp">
+                <img src="./img/piano progress.jpg" alt="">
+                <p> The piano uses thin PLA pieces as keys that can bend elastically when pressed. Underneath are copper tapes that can detect when a key is pressed, and then sends the signal to an arduino input. 
+                    <br><br>
+                After that, the signal is sent from the arduino to a python program, which plays the appropriate sound files. The two main challenges were getting a finite sound file to play continuously for as long as the key was pressed, and getting an arbitrary number of keys to play at the same time to create chords.
+                </p>
+            </div>
+            <div class="model-photo">
+                <p> Below is a demo of me "playing" the piano. A warning for your ears, I still don't know how to play very well--but at least I know how to 3d print one!
+                </p>
+                <iframe width="560" height="315" src="https://www.youtube.com/embed/KVaO2rNYYuE?si=a9ogcXgiBV-aBamE" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

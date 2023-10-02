@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Foldable 3d printing</title>
+    <link rel="stylesheet" type = "text/css" href="../../style.css">
+</head>
+
+<body>  
+    <div id='wrapper'>
+        <div id='head'>
+            <a id = "name" href="../../index.html"><img src="../../img/logo.svg" style="width: 50%;" alt="logo"></a>
+            <hr>
+            <div id='navigator'>
+                <a class="navlink" href="../../index.html">Home</a>
+                <a class="navlink" href="../../about.html">Origami</a>
+                <a class="navlink" href="../../resources.html">Resources</a>
+                <a class="navlink" href="../../other.html">Portfolios</a>
+            </div>
+        </div>
+        <hr>
+        <div class ="model-page">
+            <br><a class="navlink" href="../mechanical.html">Back to maker portfolio</a>
+            <h1>Foldable 3d printing</h1>
+            <div class="model-photo">
+                <img src="./img/fabric mirror.jpg" alt="">
+                <img src="./img/fabric silicon.JPG" alt="">
+                <p>21G.510, Internship with TeamLab (in Tokyo), and personal exploration </p>
+                <br><br>
+                <p> A long interest of mine has been finding ways to intersect origami and more "typical" engineering things. This project was an exploration of combining origami and 3d printing, by 3d printing 2d crease patterns that are flexible in the crease lines but have rigid polygons.
+                    <br><br>
+                The main problem preventing this technique from becoming something practical is scalability. A 10x10cm piece might take at least an hour or two to print (plus a bit of careful manual labor to secure the fabric insert), and alternative methods like silicon casting didn't quite work either. It would take a lot more research before foldable yet rigid structures for arbitrary crease patterns like this become practically manufacturable.
+                </p>
+            </div>
+            <br>
+            <div class="model-cp">
+                <img src="./img/fabric progress.jpg" alt="">
+                <p> With the current 3d printing method, after printing one or two layers the 3d printer is paused and a layer or two of fabric is inserted and secured to the print bed. When the printer continues, the layers above the fabric are able to bond to the lower layers, leaving the fabric embedded within. Thus, the polygons remain rigid while the gaps between are flexible.
+                    <br><br>
+                Over the course of the summer, I ended up trying out a variety of patterns, fabric types, and layer heights. I found that that the 30-60-90 triangle pattern, a net-like "tulle" fabric, and 4 layers of 0.25mm seemed to work very well.
+                </p>
+            </div>
+            <br>
+            <p>
+                I also explored some of the artistic applications of such fabric, in particular the reflective properties of PLA when printed on a very smooth print bed. In the first video, I used two independent motors to induce buckling and "rippling" of the reflective triangles.
+            </p>
+            <video width="500" controls>
+                <source src="./img/fabric actuation.mp4" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+            <video width="500" controls>
+                <source src="./img/fabric hand movement.mp4" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+        </div>
+    </div>
+</body>
+</html>
