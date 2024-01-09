@@ -120,12 +120,12 @@ class CP {
         this.vertices = vertices;
         this.creases = creases;
         
-        this.angularFoldable = true;
-        for(const vertex of this.vertices){ //this needs to be not i, bc i is used in a loop when checking a vertex
-            if(!isVertexFlatFoldable(vertex)){
-                this.angularFoldable = false;
-            }
-        }
+        // this.angularFoldable = true;
+        // for(const vertex of this.vertices){ //this needs to be not i, bc i is used in a loop when checking a vertex
+        //     if(!isVertexFlatFoldable(vertex)){
+        //         this.angularFoldable = false;
+        //     }
+        // }
         
         this.stacks = []
         this.stackmatrix = []

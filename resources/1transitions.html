@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Universal Transitions</title>
+    <link rel="stylesheet" type = "text/css" href="../style.css">
+</head>
+<body>
+    <div id='wrapper'>
+        <div id='head'>
+            <a id = "name" href="../index.html"><img src="../img/logo.svg" style="width: 50%;" alt="logo"></a>
+            <hr>
+            <div id='navigator'>
+                <a class="navlink" href="../index.html">Home</a>
+                <a class="navlink" href="../about.html">Origami</a>
+                <a class="navlink" href="../resources.html">Resources</a>
+                <a class="navlink" href="../other.html">Other</a>
+            </div>
+        </div>
+        <hr>
+        <h1>Universal transitions</h1>
+        <div>
+            <noscript>Please enable javascript to use this app.</noscript>
+            <p>
+                Better UI coming soon. Just testing for now
+            </p>
+            <div>               
+                <input type="file" id="inputfile" name="inputfile" value="example.cp" />
+                <pre id="output"></pre>
+                <script>
+                    function UploadCp() {
+                        const reader = new FileReader();
+                        reader.onload = function () {
+                            input = reader.result;
+                            start(input);
+                        };
+                        const fileSelector = document.getElementById("inputfile");
+                        if (fileSelector) {
+                            reader.readAsText(fileSelector.files[0]);
+                        } else {
+                            console.log("File input element not present");
+                        }
+                    }
+                </script>
+                <button id="upload" type=button onclick="UploadCp()">Upload</button>
+            </div>
+        </div>
+
+        <div>
+            <label for="angle">Angle between ridge and axials:</label>
+            <!-- <input type="range" id = "angle" min="1" max="89" value="45"> -->
+            <input type="text" id = "angle" value="45">
+            <br>
+            <label for="topInput">Positions of top creases: </label>
+            <input type="text" id="topInput" value = "[0,1,3]">
+            <br>
+            <label for="bottomInput">Positions of bottom creases: </label>
+            <input type="text" id="bottomInput" value = "[2]">
+            <br>
+            <label for="mvInput">Starting crease mv: </label>
+            <input type="text" id = "mvInput" value = "V">
+            <br>
+            <label for="beta0">beta 0: </label>
+            <input type="text" id = "beta0" value = "90">
+        </div>
+        <button type = button onclick="{
+            start(JSON.parse(topInput.value).sort(),
+                    JSON.parse(bottomInput.value).sort()
+                )
+        }">Build transition</button>
+        <div>
+            <button type = button onclick="{
+                start([0,1,3,4],[0,1,3,4])
+            }">Test 1 (no shifting)</button>
+
+            <button type = button onclick="{
+                start([0,1,2],[3])
+            }">Test 2 (not possible)</button>
+
+            <button type = button onclick="{
+                start([0,1],[3,4])
+            }">Test 3 (2:2)</button>
+
+            <!-- <button type = button onclick="{
+                start([0,1],[3,4])
+            }">Test 3</button> -->
+
+            <button type = button onclick="{
+                start([0,1,2,3,4],[2])
+            }">Test 4 (1:n)</button>
+
+            <button type = button onclick="{
+                start([0,1,2,3,4],[1.5,2,2.5])
+            }">Test 5 (3:n)</button>
+
+            <button type = button onclick="{
+                function generateArrays() {
+                    // Generate random array length less than 10
+                    let length = Math.floor(Math.random() * 10);
+
+                    // Generate two random arrays
+                    let arr1 = Array.from({length: length}, () => Math.floor(Math.random() * 100)/10);
+                    let arr2 = Array.from({length: length}, () => Math.floor(Math.random() * 100)/10);
+
+                    // Sort the arrays
+                    arr1.sort((a, b) => a - b);
+                    arr2.sort((a, b) => a - b);
+
+                    // Calculate alternating sum
+                    let sum1 = arr1.reduce((acc, val, i) => acc + (i % 2 === 0 ? val : -val), 0);
+                    let sum2 = arr2.reduce((acc, val, i) => acc + (i % 2 === 0 ? val : -val), 0);
+
+                    // If sums are not equal, regenerate second array
+                    while (sum1 !== sum2) {
+                        arr2 = Array.from({length: length}, () => Math.floor(Math.random() * 100));
+                        arr2.sort((a, b) => a - b);
+                        sum2 = arr2.reduce((acc, val, i) => acc + (i % 2 === 0 ? val : -val), 0);
+                    }
+
+                    return [arr1, arr2];
+                } //from bing ai
+                result = generateArrays()
+                console.log(result)
+                // start(result[0],result[1])
+
+            }">random</button>
+        </div> 
+        
+        <canvas id="square" width="500" height = "500"></canvas>
+        <script src="paper-core.js"></script>
+        <script src="origami.js"></script>
+        <script src="1transitions.js"></script>
+        <script type="text/javascript" data-paper-ignore="true">
+            paper.setup(document.getElementById("square"))
+
+            var theta
+            var a 
+            var b
+
+            var displaycp = new paper.Group();
+
+            start(JSON.parse(topInput.value).sort(),
+                    JSON.parse(bottomInput.value).sort()
+                )
+        </script>
+
+        <div>
+            <h2>Notes about this program</h2>
+            <p>hello</p>
+        </div>
+    </div>
+</body>
+</html>
