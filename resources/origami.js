@@ -120,18 +120,19 @@ class CP {
         this.vertices = vertices;
         this.creases = creases;
         
-        // this.angularFoldable = true;
-        // for(const vertex of this.vertices){ //this needs to be not i, bc i is used in a loop when checking a vertex
-        //     if(!isVertexFlatFoldable(vertex)){
-        //         this.angularFoldable = false;
-        //     }
-        // }
         
         this.stacks = []
         this.stackmatrix = []
         this.assignedFaces = []
     }
-    
+    checkFoldability(){
+        this.angularFoldable = true;
+        for(const vertex of this.vertices){ //this needs to be not i, bc i is used in a loop when checking a vertex
+            if(!isVertexFlatFoldable(vertex)){
+                this.angularFoldable = false;
+            }
+        }
+    }
     foldXray(){
         //assign folded coordinates to vertices by reflecting each face along its bath back to the starting face
         [this.faces,this.matrix] = findFaces(this.creases)
