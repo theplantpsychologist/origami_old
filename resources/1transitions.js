@@ -109,7 +109,6 @@ function graph(state){
     connect(firstCrease,leftEndpoint,state,oppositemv)
     connect(lastCrease,rightEndpoint,state,lastCrease.mv)
 
-
     //connect the first creases of each set together
     connect(state.A[0],state.B[0],state,currentmv)
 
@@ -131,37 +130,56 @@ function graph(state){
     var iB = 0
     var stop = 0 
     while(stop<100){
-        currentmv = oppositemv
-        oppositemv = currentmv == 'V'?'M':'V'
         //end conditions: if you reach the end of A or the end of B, that's the end--connect it to the remainder of the other set
         if(iA==state.A.length-1){
+            console.log("now on the last A")
             while(iB < state.B.length-1){
-                connect(state.B[iB],state.B[iB+1],state,oppositemv)
-                connect(state.A[iA],state.B[iB+1],state,currentmv)
+                //"pivoting" around A[iA], the last of A
+                iBmv = state.B[iB].connections.map(c => c.mv)
+                iBmv.push(state.B[iB].mv)//the mv of iB.P's current connections
+                bmv = iBmv.reduce((total,x) => (x=='M' ? total+1 : total-1), 0) > 0? "M":"V"
+
+                connect(state.B[iB],state.B[iB+1],state,bmv)
+                connect(state.A[iA],state.B[iB+1],state,bmv=='V'?'M':'V')
                 iB += 1
-                currentmv = oppositemv
-                oppositemv = currentmv == 'V'?'M':'V'
             }
             return state
         }
         if(iB==state.B.length-1){
+            console.log("now on the last B")
             while(iA < state.A.length-1){
-                connect(state.A[iA],state.A[iA+1],state,oppositemv)
-                connect(state.B[iB],state.A[iA+1],state,currentmv)
+                //pivoting around the last of B
+                iAmv = state.A[iA].connections.map(c => c.mv)
+                iAmv.push(state.A[iA].mv)//the mv of iB.P's current connections
+                amv = iAmv.reduce((total,x) => (x=='M' ? total+1 : total-1), 0) > 0? "M":"V"
+
+                connect(state.A[iA],state.A[iA+1],state,amv)
+                connect(state.B[iB],state.A[iA+1],state,amv=='V'?'M':'V')
                 iA += 1
-                currentmv = oppositemv
-                oppositemv = currentmv == 'V'?'M':'V'
             }
             return state
         }
         //main operation. the condition here decides which one steps forward--this seems to be a key thing
-        if(state.A[iA].xint < state.B[iB].xint){ 
-            connect(state.A[iA],state.A[iA+1],state,oppositemv)
-            connect(state.B[iB],state.A[iA+1],state,currentmv)
+        //maybe take into consideration who is ready by maekawa?
+        // if(state.A[iA].xint < state.B[iB].xint){
+        if(Math.abs(alternatingSum(state.A.slice(0,iA+1).map(a=>a.xint))) < Math.abs(alternatingSum(state.B.slice(0,iB+1).map(a=>a.xint)))){
+            console.log("A steps forward")
+            iAmv = state.A[iA].connections.map(c => c.mv)
+            iAmv.push(state.A[iA].mv)//the mv of iB.P's current connections
+            amv = iAmv.reduce((total,x) => (x=='M' ? total+1 : total-1), 0) > 0? "M":"V"
+
+            connect(state.A[iA],state.A[iA+1],state,amv)
+            connect(state.B[iB],state.A[iA+1],state,amv=='V'?'M':'V')
+
             iA += 1
         } else{
-            connect(state.B[iB],state.B[iB+1],state,oppositemv)
-            connect(state.A[iA],state.B[iB+1],state,currentmv)
+            console.log("B steps forward")
+            iBmv = state.B[iB].connections.map(c => c.mv)
+            iBmv.push(state.B[iB].mv)//the mv of iB.P's current connections
+            bmv = iBmv.reduce((total,x) => (x=='M' ? total+1 : total-1), 0) > 0? "M":"V"//go with the one there are more of
+            // console.log(iBmv,iBmv.reduce((total,x) => (x=='M' ? total+1 : total-1), 0),bmv)
+            connect(state.B[iB],state.B[iB+1],state,bmv)//oppositemv)
+            connect(state.A[iA],state.B[iB+1],state,bmv=='V'?'M':'V')//currentmv)
             iB += 1
         }
     }
@@ -171,40 +189,14 @@ function graph(state){
 function placeVertices(state){
     "move the vertices around. Define a length L for all input creases"
 
-    // for now, let's give everyone L = 1 so we can visualize graph connections
-    // for(const Ai of state.A){
-    //     Ai.L = 1
-    // }
-    // for(const Bi of state.B){
-    //     Bi.L = 1
-    // }
-    // for(const Ai of state.A){
-    //     Ai.P.x -= Ai.L*Math.cos(state.theta)
-    //     Ai.P.y += Ai.L*Math.sin(state.theta)
-    // }
-    // for(const Bi of state.B){
-    //     Bi.P.x -= Bi.L*Math.cos(state.theta)
-    //     Bi.P.y -= Bi.L*Math.sin(state.theta)
-    // }
-    // state.firstCrease.L = 0
-    // state.leftEndpoint.L = 0
-    // state.rightEndpoint.L = 0
-{
     //start by fixing the position of the firstCrease and its guaranteed two connections. From there, any crease whose all connections except for 1 have a defined L, can define the position of the last one based on kawasaki (perhaps a complicated calculation though, but guaranteed to go one at a time. although maybe will need to use beta0 again at some point)
 
     state.firstCrease.L = 0
     state.leftEndpoint.L = 0
     state.rightEndpoint.L = 0
-    // firstCrease.P.x -= firstCrease.L*Math.cos(state.theta)
-    // firstCrease.P.y += firstCrease.L*Math.sin(state.theta)
-
+   
     var iA = 0
     var iB = 0
-    // if(state.firstCrease == state.A[0]){
-    //     iA +=1
-    // } else{
-    //     iB += 1
-    // }
     var stop = 0
     while(stop<100 & iB != state.B.length & iA != state.A.length){
         if(state.A[iA].connections.length - state.A[iA].connectedCreases.reduce((sum,connection)=>  connection.L!==null? sum+1:sum+0, 0) == 1){ //if all of A[iA]'s connections except for one have a defined L
@@ -231,7 +223,6 @@ function placeVertices(state){
             state.B[iB].angles.pop()
             state.B[iB].angles = [Math.PI+state.theta].concat(state.B[iB].angles).sort()
             beta_i = alternatingSum(state.B[iB].angles) - Math.PI
-            console.log(beta_i)
             newPlacement.L = state.B[iB].L + Math.sin(-beta_i)/Math.sin(Math.PI+beta_i-state.theta) * (newPlacement.xint - state.B[iB].xint)
             newPlacement.P.x -= Math.abs(newPlacement.L)*Math.cos(state.theta)
             newPlacement.P.y -= newPlacement.L*Math.sin(state.theta) //watch out, this crease could be in A or in B
@@ -243,7 +234,6 @@ function placeVertices(state){
         }
         stop+=1
     }
-}
 
     
     return state
@@ -259,7 +249,6 @@ function render(state){
     const upperBound = Math.max(...state.A.map(a => a.P.y))*2
     // console.log(state.A.map(a => a.P.y), upperBound)
     const lowerBound = Math.min(...state.B.map(b => b.P.y))*2
-    console.log(upperBound,lowerBound)
 
     for(const c of state.A){
         //c is an input crease
@@ -301,7 +290,6 @@ function render(state){
         v.y = -1*v.y/(xmax-xmin) + 0.5
     }
 
-    console.log(vertices,creases)
     output = new CP(vertices,creases)
     output.checkFoldability()
     return output
