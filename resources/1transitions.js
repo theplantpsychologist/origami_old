@@ -16,6 +16,8 @@ inputs: A, B, theta, beta0
 
 outputs: a cp 
 
+first figure out how to handle cases where A and B have a crease on the same location. Then will be able to add the imaginary creases
+
 */
 
 function start(a,b){
@@ -30,14 +32,14 @@ function start(a,b){
     var state = {
         theta:parseFloat(thetaInput.value) * (2*Math.PI)/360,
         beta_0:parseFloat(beta0input.value) * (2*Math.PI)/360,
-        ainput:a,
-        binput:b,
+        Ainput:a,
+        Binput:b,
         startmv:mvInput.value,
     }
     console.log(state)
-    console.log("alternating sums are equal:",alternatingSum(a)==alternatingSum(b))
+    console.log("alternating sums are equal:",alternatingSum(a)==alternatingSum(b),state.Ainput,state.Binput)
     state = setup(state)
-    state = graph(state)
+    state = graph2(state)
     state = placeVertices(state)
     cp = render(state)
     displaycp = displayCp(cp,10,10,490,490)
@@ -54,9 +56,11 @@ function start(a,b){
 
 class InputCrease{
     //represents the input crease, but is not itself the crease object
-    constructor(xint,mv){
+    constructor(xint,mv,side,index){
         this.xint = xint 
         this.mv = mv
+        this.side = side
+        this.index = index
         this.P = new Vertex(xint,0)
         this.L = null
         this.connections = [] 
@@ -73,29 +77,30 @@ class Connection{
 }
 
 function setup(state){
-    "takes parsed input and makes the appropriate objects to represent it. Input are state properties ainput and binput, outputs are the more useful A and B"
+    "takes parsed input and makes the appropriate objects to represent it. Input are state properties Ainput and Binput, outputs are the more useful A and B"
     var A = [] //list of inputCrease objects
     var B = [] //list of inputCrease objects
     const startmv = state.startmv
     othermv = startmv=="M"?"V":"M"
-    for(i=0;i<state.ainput.length;i++){
-        A.push(new InputCrease(state.ainput[i], i%2==0?startmv:othermv))
+    for(i=0;i<state.Ainput.length;i++){
+        A.push(new InputCrease(state.Ainput[i], i%2==0?startmv:othermv,"side A",A.length))
     }
-    for(i=0;i<state.binput.length;i++){
-        B.push(new InputCrease(state.binput[i], i%2==0?startmv:othermv))
+    for(i=0;i<state.Binput.length;i++){
+        B.push(new InputCrease(state.Binput[i], i%2==0?startmv:othermv,"side B",B.length))
     }
     state.A = A
     state.B = B
     return state
 }
 
+//this works for sure
 function graph(state){
     "make the graph connections. start with the across connections first (in case there are any zero pleats) and then do the neighbor connections"
     state.connectorCreases = [] //may want to clear each crease's own connections list if this is is meant to properly reset
 
     //Connect the ridge to the first and last crease. A and B are still sorted
-    var firstCrease = state.ainput[0]<state.binput[0]? state.A[0]: state.B[0]
-    var lastCrease = state.ainput[state.ainput.length-1]>state.binput[state.binput.length-1]? state.A[state.A.length-1]: state.B[state.B.length-1]
+    var firstCrease = state.Ainput[0]<state.Binput[0]? state.A[0]: state.B[0]
+    var lastCrease = state.Ainput[state.Ainput.length-1]>state.Binput[state.Binput.length-1]? state.A[state.A.length-1]: state.B[state.B.length-1]
     //these creases don't exist, all we want is the connection, so the actual crease is A
     var leftEndpoint = new InputCrease(firstCrease.xint-0.5,'A')
     var rightEndpoint = new InputCrease(lastCrease.xint+0.5,'A') 
@@ -186,6 +191,135 @@ function graph(state){
     // return state
 }
 
+//this is experimental
+function graph2(state){
+    "make the graph connections. start with the across connections first (in case there are any zero pleats) and then do the neighbor connections"
+    /*
+    from the beginning: you have two rolling indices, iA and iB, which represent the only two vertices that are available for connecting at a given time. We only have 3 possible new connections: iA to iB, iA to iA+1, or iB to iB+1. 
+    The criteria is always about the alternating sum. 
+        If the alternating sum is the same for iA and iB,
+            and the position is the same, 
+                then iA and iB merge their point. That is, connect to each other.
+            but the positions are different,
+        If the alternating sum is lower for iA,
+            iA steps forward, pivot around iB
+        If the alternating sum is lower for iB,
+            iB steps forward, pivot around iA
+    Theoretically, start by with iA = iB = 0. The protocol shouldn't be any different
+    */
+
+    state.connectorCreases = [] //may want to clear each crease's own connections list if this is is meant to properly reset
+    
+    var iA = 0
+    var iB = 0
+    var A0 = 0
+    var B0 = 0
+    //Connect the ridge to the first and last crease. A and B are still sorted
+    var firstCrease = state.Ainput[0]<state.Binput[0]? state.A[0]: state.B[0]
+    var lastCrease = state.Ainput[state.Ainput.length-1]>state.Binput[state.Binput.length-1]? state.A[state.A.length-1]: state.B[state.B.length-1]
+    //these creases don't exist, all we want is the connection, so the actual crease is A
+    var leftEndpoint = new InputCrease(firstCrease.xint-0.5,'A')
+    var rightEndpoint = new InputCrease(lastCrease.xint+0.5,'A') 
+    state.firstCrease = firstCrease
+    state.lastCrease = lastCrease
+    state.leftEndpoint = leftEndpoint
+    state.rightEndpoint = rightEndpoint
+
+    var currentmv = firstCrease.mv
+    var oppositemv = currentmv == 'V'?'M':'V'
+    connect(firstCrease,leftEndpoint,state,oppositemv)
+    connect(lastCrease,rightEndpoint,state,lastCrease.mv)
+
+    //connect the first creases of each set together
+    if(state.A[0].xint != state.B[0].xint){
+        connect(state.A[0],state.B[0],state,currentmv)
+    }
+
+    var stop = 0 
+    while(stop<1000){
+        //end conditions: if you reach the end of A or the end of B, that's the end--connect it to the remainder of the other set
+        if(iA==state.A.length-1){
+            console.log("now on the last A")
+            while(iB < state.B.length-1){
+                //"pivoting" around A[iA], the last of A
+                iBmv = state.B[iB].connections.map(c => c.mv)
+                iBmv.push(state.B[iB].mv)//the mv of iB.P's current connections
+                bmv = iBmv.reduce((total,x) => (x=='M' ? total+1 : total-1), 0) > 0? "M":"V"
+
+                connect(state.B[iB],state.B[iB+1],state,bmv)
+                connect(state.A[iA],state.B[iB+1],state,bmv=='V'?'M':'V')
+                iB += 1
+            }
+            console.log("== Graph connections complete ==")
+            return state
+        }
+        if(iB==state.B.length-1){
+            console.log("now on the last B")
+            while(iA < state.A.length-1){
+                //pivoting around the last of B
+                iAmv = state.A[iA].connections.map(c => c.mv)
+                iAmv.push(state.A[iA].mv)//the mv of iB.P's current connections
+                amv = iAmv.reduce((total,x) => (x=='M' ? total+1 : total-1), 0) > 0? "M":"V"
+
+                connect(state.A[iA],state.A[iA+1],state,amv)
+                connect(state.B[iB],state.A[iA+1],state,amv=='V'?'M':'V')
+                iA += 1
+            }
+            console.log("== Graph connections complete ==")
+            return state
+        }
+        //main operation. the condition here decides which one steps forward--this seems to be a key thing
+        //maybe take into consideration who is ready by maekawa?
+        // if(state.A[iA].xint < state.B[iB].xint){
+        console.log((alternatingSum(state.Ainput.slice(A0,iA+1))) , (alternatingSum(state.Binput.slice(B0,iB+1))))
+        if((alternatingSum(state.Ainput.slice(A0,iA+1))) < (alternatingSum(state.Binput.slice(B0,iB+1)))){
+            console.log("A steps forward")
+            iAmv = state.A[iA].connections.map(c => c.mv)
+            iAmv.push(state.A[iA].mv)//the mv of iB.P's current connections
+            amv = iAmv.reduce((total,x) => (x=='M' ? total+1 : total-1), 0) > 0? "M":"V"
+
+            connect(state.A[iA],state.A[iA+1],state,amv)
+            connect(state.B[iB],state.A[iA+1],state,amv=='V'?'M':'V')
+
+            iA += 1
+        } else if((alternatingSum(state.Ainput.slice(A0,iA+1))) > (alternatingSum(state.Binput.slice(B0,iB+1)))){
+            console.log("B steps forward")
+            iBmv = state.B[iB].connections.map(c => c.mv)
+            iBmv.push(state.B[iB].mv)//the mv of iB.P's current connections
+            bmv = iBmv.reduce((total,x) => (x=='M' ? total+1 : total-1), 0) > 0? "M":"V"//go with the one there are more of
+            // console.log(iBmv,iBmv.reduce((total,x) => (x=='M' ? total+1 : total-1), 0),bmv)
+            connect(state.B[iB],state.B[iB+1],state,bmv)//oppositemv)
+            connect(state.A[iA],state.B[iB+1],state,bmv=='V'?'M':'V')//currentmv)
+            iB += 1
+        }
+        else{
+            connect(state.A[iA],state.B[iB],state,state.A[iA].xint>state.B[iB].xint?state.A[iA].mv : state.A[iA].xint<state.B[iB].xint?state.B[iB].mv :'A' )
+            console.log("step together")
+            // if(state.A[iA+1].xint < state.B[iB+1].xint) {
+            //     console.log("step together, connecting A")
+            //     connect(state.A[iA],state.A[iA+1],state,state.A[iA].mv)
+            // } else {//if (Math.abs(alternatingSum(state.A.slice(0,iA+1).map(a=>a.xint))) > Math.abs(alternatingSum(state.B.slice(0,iB+1).map(a=>a.xint)))){
+            //     console.log("step together, connecting B")
+            //     connect(state.B[iB],state.B[iB+1],state,state.B[iB].mv)
+            // }
+            connect(
+                state.A[iA].xint>state.B[iB].xint? state.A[iA]:state.B[iB],
+                state.A[iA+1].xint < state.B[iB+1].xint? state.A[iA+1]:state.B[iB+1],
+                state,
+                state.A[iA].xint>state.B[iB].xint? state.A[iA].mv:state.B[iB].mv
+            )
+
+            iA += 1
+            iB += 1
+            A0 = iA
+            B0 = iB
+            connect(state.A[iA],state.B[iB],state,state.A[iA].xint>state.B[iB].xint?state.A[iA].mv : state.A[iA].xint<state.B[iB].xint?state.B[iB].mv :'A' )
+
+        }
+    }
+    // return state is in the end conditions
+}
+
 function placeVertices(state){
     "move the vertices around. Define a length L for all input creases"
 
@@ -194,14 +328,45 @@ function placeVertices(state){
     state.firstCrease.L = 0
     state.leftEndpoint.L = 0
     state.rightEndpoint.L = 0
-   
+
+    // //uncomment this section to place all of them at L = 1
+    // for(const C of state.A){
+    //     C.L = 1
+    //     C.P.x = C.xint - 1
+    //     C.P.y = 1
+    // }
+    // for(const C of state.B){
+    //     C.L = 1
+    //     C.P.x = C.xint -1
+    //     C.P.y = -1
+    // }
+    // return state
+    
     var iA = 0
     var iB = 0
     var stop = 0
+
+    //hard coding the first position, which uses beta_0
+    firstCrease = state.firstCrease
+    if(firstCrease == state.A[0]){
+        state.B[0].L = Math.sin(state.theta + state.beta_0)/Math.sin(state.beta_0) * (state.B[0].xint-state.A[0].xint)
+        console.log(state.B[0].L, 'B0.L')
+        state.B[0].P.x -= state.B[0].L*Math.cos(state.theta)
+        state.B[0].P.y -= state.B[0].L*Math.sin(state.theta)
+        // state.A[1].L = 0-Math.sin(state.beta_0)/Math.sin(state.theta-state.beta_0)*(state.A[1].xint-state.A[0].xint)
+        //this second one doesn't seem right for the n to n no shifting case
+    } else {
+        state.A[0].L = Math.sin(state.theta + state.beta_0)/Math.sin(state.beta_0) * (state.A[0].xint-state.B[0].xint)
+        console.log(state.A[0].L,'A0.L')
+        // state.B[1].L = 0-Math.sin(state.beta_0)/Math.sin(state.theta-state.beta_0)*(state.B[1].xint-state.B[0].xint)
+        state.A[0].P.x -= state.A[0].L*Math.cos(state.theta)
+        state.A[0].P.y += state.A[0].L*Math.sin(state.theta)
+    }
+
     while(stop<100 & iB != state.B.length & iA != state.A.length){
         if(state.A[iA].connections.length - state.A[iA].connectedCreases.reduce((sum,connection)=>  connection.L!==null? sum+1:sum+0, 0) == 1){ //if all of A[iA]'s connections except for one have a defined L
             //calculate the position of the remaining connection based on kawasaki
-            console.log("A is ready",state.A[iA].xint)
+            console.log("A steps forward from",state.A[iA].xint)
             // the new placement will be the last one added to connectedCreases
             var newPlacement = state.A[iA].connectedCreases[state.A[iA].connectedCreases.length-1]
             //calculate the necessary angle: beta_i. watch out for multiple solutions. the angles should already be sorted in counter clockwise order
@@ -214,9 +379,10 @@ function placeVertices(state){
             newPlacement.P.y += newPlacement.L*Math.sin(state.theta) //watch out, this crease could be in A or in B
             // state.A[iA].P.angularFoldable = true
             iA += 1
+            console.log(beta_i,newPlacement.L)
         }
         else if(state.B[iB].connections.length - state.B[iB].connectedCreases.reduce((sum,connection)=>  connection.L!==null? sum+1:sum+0, 0) == 1){
-            console.log("B is ready",state.B[iB].xint)
+            console.log("B steps forward from",state.B[iB].xint)
             var newPlacement = state.B[iB].connectedCreases[state.B[iB].connectedCreases.length-1]
 
             state.B[iB].angles = state.B[iB].connectedCreases.map((crease)=>angle(state.B[iB].P,crease.P))
@@ -235,7 +401,94 @@ function placeVertices(state){
         stop+=1
     }
 
+    console.log("== Vertex placement complete ==")
+    return state
+}
+
+function placeVertices2(state){
+    "move the vertices around. Define a length L for all input creases"
+
+    state.leftEndpoint.L = 0
+    state.rightEndpoint.L = 0
     
+    var iA = 0 //iA will mean the most recently finished index
+    var iB = 0
+    var stop = 0
+    var beta = state.beta_0
+    var steppingFrom = null
+    var newPlacement = null
+    
+    //hard coding the first in each
+
+    firstCrease = state.firstCrease
+    if(firstCrease == state.A[0]){
+        state.A[0].L = 0
+        state.B[0].L = state.B[0].xint == state.A[0].xint? 0 : Math.sin(state.theta + state.beta_0)/Math.sin(state.beta_0) * (state.B[0].xint-state.A[0].xint)
+        state.B[0].P.x -= state.B[0].L*Math.cos(state.theta)
+        state.B[0].P.y -= state.B[0].L*Math.sin(state.theta)
+    } else {
+        state.B[0].L = 0
+        state.A[0].L = state.A[0].xint == state.B[0].xint? 0 : Math.sin(state.theta + state.beta_0)/Math.sin(state.beta_0) * (state.A[0].xint-state.B[0].xint)
+        state.A[0].P.x -= state.A[0].L*Math.cos(state.theta)
+        state.A[0].P.y += state.A[0].L*Math.sin(state.theta)
+    }
+
+    while(stop<100 & iB != state.B.length-1 & iA != state.A.length-1){
+        console.log("iA and iB:", iA, iB)
+        if(state.A[iA+1].connectedCreases.length == 1){
+            console.log("A has a zero crease",iA +1 )
+            state.A[iA+1].L = 0
+            iA += 1
+            continue
+        }
+        if(state.B[iB+1].connectedCreases.length == 1){
+            console.log("B has a zero crease",iB + 1)
+            state.B[iB+1].L = 0
+            iB += 1
+            continue
+        }
+        "1. Pick which you're stepping from    2. Calculate beta    3. apply beta to place the next one"
+
+        //pick where stepping from
+        if(state.A[iA].connections.length>1 & (state.A[iA].L === 0 || state.A[iA].connections.length - state.A[iA].connectedCreases.reduce((sum,connection)=>  connection.L!==null? sum+1:sum+0, 0) == 1)){ //if all of A[iA]'s connections except for one have a defined L, or if A.L is 0
+            steppingFrom = state.A[iA]
+            // console.log("A steps forward from",state.A[iA].xint)
+        } else{
+            steppingFrom = state.B[iB]
+            // console.log("B steps forward from",state.B[iB].xint)
+        }
+        
+        //calculate beta
+        if(state.A[iA].L == 0 & state.B[iB].L == 0){ //this condition does not pass test 5b
+            beta = 0
+        } else if(steppingFrom.L === 0) {
+            beta = state.beta_0 
+            //when we're using beta_0, that means we're also using the other direction too because this vertex will have two undefined connections
+        } else {
+            steppingFrom.angles = steppingFrom.connectedCreases.map((crease)=>angle(steppingFrom.P,crease.P))
+            steppingFrom.angles.pop() //because the last one hasn't been set yet, it's P is at 0
+            steppingFrom.angles = [Math.PI-state.theta].concat(steppingFrom.angles).sort()
+            beta = alternatingSum(steppingFrom.angles) - Math.PI
+        }
+        
+
+        // the new placement will be the last one added to connectedCreases
+        newPlacement = steppingFrom.connectedCreases[steppingFrom.connectedCreases.length-1]
+
+        //new placement is either iA+1, or iB+1
+
+        newPlacement.L = steppingFrom.L + Math.sin(beta)/Math.sin(Math.PI-beta-state.theta) * (newPlacement.xint - steppingFrom.xint) //from law of sines
+        newPlacement.P.x -= Math.abs(newPlacement.L)*Math.cos(state.theta)
+        newPlacement.P.y += newPlacement.L*Math.sin(state.theta) //watch out, this crease could be in A or in B
+
+        // if(newPlacement in state.A){iA += 1} else {iB += 1} 
+        console.log("stepping from",steppingFrom.side,steppingFrom.index, ", beta is",beta,", newplacement is",newPlacement.side,newPlacement.index)
+        if(newPlacement.side == "side A"){iA += 1} else {iB += 1}
+        stop+=1
+    }
+
+    console.log("== Vertex placement complete ==")
+    console.log(state)
     return state
 }
 
@@ -246,9 +499,9 @@ function render(state){
     //deal with zero pleats
     var vertices = []
     var creases = []
-    const upperBound = Math.max(...state.A.map(a => a.P.y))*2
+    const upperBound = Math.max(...state.A.map(a => a.P.y))*2+1
     // console.log(state.A.map(a => a.P.y), upperBound)
-    const lowerBound = Math.min(...state.B.map(b => b.P.y))*2
+    const lowerBound = Math.min(...state.B.map(b => b.P.y))*2-1
 
     for(const c of state.A){
         //c is an input crease
@@ -283,18 +536,19 @@ function render(state){
 
     //rescale everything to fit in the box. xmin goes to 0, xmax goes to 1
     //also, flip the y upside down
-    const xmin = Math.min(...state.ainput,...state.binput)-upperBound*Math.cos(state.theta)
-    const xmax = Math.max(...state.ainput,...state.binput)+1
+    const xmin = Math.min(...state.Ainput,...state.Binput)-upperBound*Math.cos(state.theta)
+    const xmax = Math.max(...state.Ainput,...state.Binput)+1
     for(const v of vertices){
         v.x = (v.x-xmin)/(xmax-xmin)
         v.y = -1*v.y/(xmax-xmin) + 0.5
     }
 
+    //merge 0 length creases after render? look for A creases
+
     output = new CP(vertices,creases)
     output.checkFoldability()
     return output
 }
-
 
 //=================helper functions==============
 function alternatingSum(arr) {
