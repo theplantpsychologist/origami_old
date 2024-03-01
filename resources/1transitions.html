@@ -108,37 +108,22 @@
             <button type = button onclick="{
                 start([0,1,2,3],[1.5,2.5,3.5,4.5])
             }">Test 7 (4:4)</button>
-            <!-- <button type = button onclick="{
-                function generateArrays() {
-                    // Generate random array length less than 10
-                    let length = Math.floor(Math.random() * 10);
-
-                    // Generate two random arrays
-                    let arr1 = Array.from({length: length}, () => Math.floor(Math.random() * 10));
-                    let arr2 = Array.from({length: length}, () => Math.floor(Math.random() * 10));
-
-                    // Sort the arrays
-                    arr1.sort((a, b) => a - b);
-                    arr2.sort((a, b) => a - b);
-
-                    // Calculate alternating sum
-                    let sum1 = arr1.reduce((acc, val, i) => acc + (i % 2 === 0 ? val : -val), 0);
-                    let sum2 = arr2.reduce((acc, val, i) => acc + (i % 2 === 0 ? val : -val), 0);
-
-                    // If sums are not equal, regenerate second array
-                    while (sum1 !== sum2) {
-                        arr2 = Array.from({length: length}, () => Math.floor(Math.random() * 100));
-                        arr2.sort((a, b) => a - b);
-                        sum2 = arr2.reduce((acc, val, i) => acc + (i % 2 === 0 ? val : -val), 0);
-                    }
-
-                    return [arr1, arr2];
-                } //from bing ai
-                result = generateArrays()
-                console.log(result)
-                // start(result[0],result[1])
-
-            }">random</button> -->
+            <button type = button onclick="{
+                //generate two sorted lists of unique random integers between 1 and 10, with each list containing no more than 10 and no less than 1 elements, and also the number of elements in each must both be odd or both be even
+                var n = Math.floor(Math.random()*5)*2+1
+                var arr1 = []
+                var arr2 = []
+                while (arr1.length < n) {
+                    var r = Math.floor(Math.random()*10)+1
+                    if (arr1.indexOf(r) === -1) arr1.push(r)
+                }
+                while (arr2.length < n) {
+                    var r = Math.floor(Math.random()*10)+1
+                    if (arr2.indexOf(r) === -1) arr2.push(r)
+                }
+                
+                start(arr1.sort(),arr2.sort())
+            }">random</button>
         </div> 
         
         <canvas id="square" width="500" height = "500"></canvas>
@@ -156,7 +141,7 @@
 
             start(JSON.parse(topInput.value).sort(),
                     JSON.parse(bottomInput.value).sort()
-                )
+                ) 
         </script>
 
         <div>
