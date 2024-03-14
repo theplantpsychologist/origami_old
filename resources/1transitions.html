@@ -95,11 +95,20 @@
             }">Test 4b (1:n)</button>
 
             <button type = button onclick="{
-                start([0,1,2,3,4,5,6,7,8],[2.5,4,5.5])
+                // start([2.5,4,5.5],[0,1,2,3,4,5,6,7,8])
+                start([3,5,6],[0,2,3,5,6,8,9,11,12])
+                // start([2,4,5],[0,2,3,5,7])
             }">Test 5a (3:n)</button>
+
+            <button type = button onclick="{
+                // start([2.5,4,5.5],[0,1,2,3,4,5,6,7,8])
+                start([0,2,3,5,6,8,9,11,12],[2,3,4,5,6])
+                // start([2,4,5],[0,2,3,5,7])
+            }">Test 5b (5:n)</button>
+
             <button type = button onclick="{
                 start([-2,0,1,2,4],[-2,1,4])
-            }">Test 5b (1:n + sides)</button>
+            }">Test 5c (1:n + sides)</button>
 
             <button type = button onclick="{
                 start([0,1,2,4,5,6,8,9,10],[1,5,9])
@@ -146,7 +155,7 @@
 
         <div>
             <h2>Notes about this program</h2>
-            <p>hello</p>
+            <p>This is an implementation of an algorithm described in an OSME8 paper written by Brandon Wong and Erik Demaine. Implementation built by Brandon Wong. The code for this program can be found <a href="https://github.com/theplantpsychologist/origami/blob/master/resources/1transitions.js">here</a>. </p>
         </div>
     </div>
 </body>

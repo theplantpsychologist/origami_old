@@ -236,6 +236,29 @@ function graph2(state){
     }
 
     var stop = 0 
+    //hard coding the first step
+    if(Math.abs(alternatingSum(state.Ainput.slice(A0,iA+1))) < Math.abs(alternatingSum(state.Binput.slice(B0,iB+1)))){//remember that the slice doesn't include the last index
+        console.log("A steps forward")
+        iAmv = state.A[iA].connections.map(c => c.mv)
+        iAmv.push(state.A[iA].mv)//the mv of iB.P's current connections
+        amv = iAmv.reduce((total,x) => (x=='M' ? total+1 : total-1), 0) > 0? "M":"V"
+
+        connect(state.A[iA],state.A[iA+1],state,amv)
+        connect(state.B[iB],state.A[iA+1],state,amv=='V'?'M':'V')
+
+        iA += 1
+    } else {//if(Math.abs(alternatingSum(state.Ainput.slice(A0,iA+1))) > Math.abs(alternatingSum(state.Binput.slice(B0,iB+1)))){
+        console.log("B steps forward")
+        iBmv = state.B[iB].connections.map(c => c.mv)
+        iBmv.push(state.B[iB].mv)//the mv of iB.P's current connections
+        bmv = iBmv.reduce((total,x) => (x=='M' ? total+1 : total-1), 0) > 0? "M":"V"//go with the one there are more of
+        // console.log(iBmv,iBmv.reduce((total,x) => (x=='M' ? total+1 : total-1), 0),bmv)
+        connect(state.B[iB],state.B[iB+1],state,bmv)//oppositemv)
+        connect(state.A[iA],state.B[iB+1],state,bmv=='V'?'M':'V')//currentmv)
+        iB += 1
+        
+    }
+
     while(stop<1000){
         //end conditions: if you reach the end of A or the end of B, that's the end--connect it to the remainder of the other set
         if(iA==state.A.length-1){
@@ -271,18 +294,34 @@ function graph2(state){
         //main operation. the condition here decides which one steps forward--this seems to be a key thing
         //maybe take into consideration who is ready by maekawa?
         // if(state.A[iA].xint < state.B[iB].xint){
-        console.log((alternatingSum(state.Ainput.slice(A0,iA+1))) , (alternatingSum(state.Binput.slice(B0,iB+1))))
-        if((alternatingSum(state.Ainput.slice(A0,iA+1))) < (alternatingSum(state.Binput.slice(B0,iB+1)))){
+        console.log("current alternating sums:", (alternatingSum(state.Ainput.slice(A0,iA+1))) , (alternatingSum(state.Binput.slice(B0,iB+1))))
+        // if((alternatingSum(state.Ainput.slice(A0,iA+1))) < (alternatingSum(state.Binput.slice(B0,iB+1)))){
+        if(Math.abs(alternatingSum(state.Ainput.slice(A0,iA+2))) < Math.abs(alternatingSum(state.Binput.slice(B0,iB+1)))){//remember that the slice doesn't include the last index
             console.log("A steps forward")
             iAmv = state.A[iA].connections.map(c => c.mv)
             iAmv.push(state.A[iA].mv)//the mv of iB.P's current connections
             amv = iAmv.reduce((total,x) => (x=='M' ? total+1 : total-1), 0) > 0? "M":"V"
-
             connect(state.A[iA],state.A[iA+1],state,amv)
             connect(state.B[iB],state.A[iA+1],state,amv=='V'?'M':'V')
-
             iA += 1
-        } else if((alternatingSum(state.Ainput.slice(A0,iA+1))) > (alternatingSum(state.Binput.slice(B0,iB+1)))){
+
+            console.log("A steps forward")
+            iAmv = state.A[iA].connections.map(c => c.mv)
+            iAmv.push(state.A[iA].mv)//the mv of iB.P's current connections
+            amv = iAmv.reduce((total,x) => (x=='M' ? total+1 : total-1), 0) > 0? "M":"V"
+            connect(state.A[iA],state.A[iA+1],state,amv)
+            connect(state.B[iB],state.A[iA+1],state,amv=='V'?'M':'V')
+            iA += 1
+        } else if(Math.abs(alternatingSum(state.Ainput.slice(A0,iA+1))) > Math.abs(alternatingSum(state.Binput.slice(B0,iB+2)))){
+            console.log("B steps forward")
+            iBmv = state.B[iB].connections.map(c => c.mv)
+            iBmv.push(state.B[iB].mv)//the mv of iB.P's current connections
+            bmv = iBmv.reduce((total,x) => (x=='M' ? total+1 : total-1), 0) > 0? "M":"V"//go with the one there are more of
+            // console.log(iBmv,iBmv.reduce((total,x) => (x=='M' ? total+1 : total-1), 0),bmv)
+            connect(state.B[iB],state.B[iB+1],state,bmv)//oppositemv)
+            connect(state.A[iA],state.B[iB+1],state,bmv=='V'?'M':'V')//currentmv)
+            iB += 1
+
             console.log("B steps forward")
             iBmv = state.B[iB].connections.map(c => c.mv)
             iBmv.push(state.B[iB].mv)//the mv of iB.P's current connections
