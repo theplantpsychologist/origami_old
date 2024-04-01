@@ -65,8 +65,8 @@
             <input type="text" id = "mvInput" value = "M">
         </div>
         <button type = button onclick="{
-            start(JSON.parse(topInput.value).sort(),
-                    JSON.parse(bottomInput.value).sort()
+            start(JSON.parse(topInput.value),
+                    JSON.parse(bottomInput.value)
                 )
         }">Build transition</button>
         <div>
@@ -124,10 +124,10 @@
 
             <button type = button onclick="{
                 start([0,1,2,3,4,5],[1,2,3,5])
-            }">Test 8a (weird)</button>
+            }">Test 8a (tricky case)</button>
             <button type = button onclick="{
-                start([0,1,2,4,5],[1,2,5])
-            }">Test 8b (weird)</button>
+                start([0,1,3,4,5],[1,3,5])
+            }">Test 8b (final boss)</button>
             <button type = button onclick="{
                 //generate two sorted lists of unique random integers between 1 and 10, with each list containing no more than 10 and no less than 1 elements, and also the number of elements in each must both be odd or both be even
                 var n = Math.floor(Math.random()*5)*2+1
