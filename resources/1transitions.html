@@ -48,21 +48,21 @@
             </div>
         </div>
         <div>
-            <label for="angle">Angle between ridge and axials:</label>
+            <label for="topInput">Positions of top creases (A): </label>
+            <input type="text" id="topInput" value = "[0,1,2,3]">
+            <br>
+            <label for="bottomInput">Positions of bottom creases (B): </label>
+            <input type="text" id="bottomInput" value = "[2.5,3.5,4.5,5.5]">
+            <br>
+            <label for="angle">Angle between ridge and axials (theta):</label>
             <!-- <input type="range" id = "angle" min="1" max="89" value="45"> -->
             <input type="text" id = "thetaInput" value="45">
             <br>
-            <label for="topInput">Positions of top creases: </label>
-            <input type="text" id="topInput" value = "[0,1,2,3]">
-            <br>
-            <label for="bottomInput">Positions of bottom creases: </label>
-            <input type="text" id="bottomInput" value = "[2.5,3.5,4.5,5.5]">
+            <label for="beta0">beta 0: </label>
+            <input type="text" id = "beta0input" value = "90">
             <br>
             <label for="mvInput">Starting crease mv: </label>
             <input type="text" id = "mvInput" value = "M">
-            <br>
-            <label for="beta0">beta 0: </label>
-            <input type="text" id = "beta0input" value = "90">
         </div>
         <button type = button onclick="{
             start(JSON.parse(topInput.value).sort(),
@@ -111,12 +111,23 @@
             }">Test 5c (1:n + sides)</button>
 
             <button type = button onclick="{
-                start([0,1,2,4,5,6,8,9,10],[1,5,9])
-            }">Test 6 (separate 1:3)</button>
+                start([0,1,2,3,4,5,6,7,8,9,10,11],[1,4,7,10])
+            }">Test 6a (separate 3:1)</button>
+            <button type = button onclick="{
+                start([1,4,7,10],[0,1,2,3,4,5,6,7,8,9,10,11])
+            }">Test 6b (separate 1:3)</button>
+            
 
             <button type = button onclick="{
                 start([0,1,2,3],[1.5,2.5,3.5,4.5])
             }">Test 7 (4:4)</button>
+
+            <button type = button onclick="{
+                start([0,1,2,3,4,5],[1,2,3,5])
+            }">Test 8a (weird)</button>
+            <button type = button onclick="{
+                start([0,1,2,4,5],[1,2,5])
+            }">Test 8b (weird)</button>
             <button type = button onclick="{
                 //generate two sorted lists of unique random integers between 1 and 10, with each list containing no more than 10 and no less than 1 elements, and also the number of elements in each must both be odd or both be even
                 var n = Math.floor(Math.random()*5)*2+1
