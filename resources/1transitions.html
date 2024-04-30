@@ -124,25 +124,13 @@
 
             <button type = button onclick="{
                 start([0,1,2,3,4,5],[1,2,3,5])
-            }">Test 8a (tricky case)</button>
+            }">Test 8a (edge case type 1)</button>
             <button type = button onclick="{
                 start([0,1,3,4,5],[1,3,5])
-            }">Test 8b (final boss)</button>
+            }">Test 8b (edge case type 2)</button>
             <button type = button onclick="{
-                //generate two sorted lists of unique random integers between 1 and 10, with each list containing no more than 10 and no less than 1 elements, and also the number of elements in each must both be odd or both be even
-                var n = Math.floor(Math.random()*5)*2+1
-                var arr1 = []
-                var arr2 = []
-                while (arr1.length < n) {
-                    var r = Math.floor(Math.random()*10)+1
-                    if (arr1.indexOf(r) === -1) arr1.push(r)
-                }
-                while (arr2.length < n) {
-                    var r = Math.floor(Math.random()*10)+1
-                    if (arr2.indexOf(r) === -1) arr2.push(r)
-                }
-                
-                start(arr1.sort(),arr2.sort())
+                ab = random(10)
+                start(ab[0],ab[1])
             }">random</button>
         </div> 
         
@@ -166,7 +154,10 @@
 
         <div>
             <h2>Notes about this program</h2>
-            <p>This is an implementation of an algorithm described in an OSME8 paper written by Brandon Wong and Erik Demaine. Implementation built by Brandon Wong. The code for this program can be found <a href="https://github.com/theplantpsychologist/origami/blob/master/resources/1transitions.js">here</a>. </p>
+            <p>This is an implementation of an algorithm described in an OSME8 paper written by Brandon Wong and Erik Demaine. Implementation built by Brandon Wong. The code for this program can be found <a href="https://github.com/theplantpsychologist/origami/blob/master/resources/1transitions.js">here</a>. 
+            <br><br>
+            In order to construct a flat foldable transition, the alternating sums of A and B must be equal. For example, if A is [1,2,3,4] and B is [2,3,4,5], then the alternating sums are 1-2+3-4 = 2-3+4-5 and a flat foldable transition is possible.
+            </p>
         </div>
     </div>
 </body>
