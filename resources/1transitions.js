@@ -1,30 +1,11 @@
-/*
-Program structure
+/*==========================================
 
-1. Parse the inputs, clear out old outputs
-2. create graph connections
-3. find the position of each point
+This code is published as an implementation of the algorithm described in the paper "Algorithmic Transitions between Parallel Pleats" by Brandon Wong and Erik Demaine, published in 8OSME. 
 
-classes
- - vertex: has x and y pos (from origami.js)
- - crease: connects two vertices (from origami.js)
- - cp (from origami.js)
- - input crease: has x intercept, L, P, mv, connections
- - input set (A and B): contain sets of input creases
+The program is hosted at the following URL:
+https://web.mit.edu/wongb/www/origami/resources/1transitions.html
 
-inputs: A, B, theta, beta0
-
-outputs: a cp 
-
-problems to solve:
- - zero pleats (final boss). make sure random works
- - get rid of overlapping vertices
- - improve UI
-    - download as .cp
-    - input method without typing numbers
-
-
-*/
+==========================================*/
 
 function start(a,b){
     `
@@ -172,7 +153,7 @@ function graph(state){
         } else if(currentmv = 'A'){
             currentmv = state.startmv == 'M'?'V':'M'
             // console.log(state.B[iB+1].mv,state.A[iA].mv,alternatingSum(state.Ainput.slice(0,iA+1)),alternatingSum(state.Binput.slice(0,iB+2)))
-            // if(alternatingSum(state.Ainput.slice(0,iA+1)) < alternatingSum(state.Binput.slice(0,iB+2))){
+            // if(alternatingSum(state.Ainput.slice(A0,iA+1)) < alternatingSum(state.Binput.slice(B0,iB+2))){
             //     currentmv = state.B[iB+1].mv
             //     console.log("chose B",currentmv)
             // }else{
@@ -187,7 +168,6 @@ function graph(state){
             return state
         }
         if(eq(alternatingSum(state.Ainput.slice(A0,iA+1)),alternatingSum(state.Binput.slice(B0,iB+1))) && eq(state.A[iA].xint,state.B[iB].xint)){
-
             console.log("reinitializing: equal alternating sums")
             state.root = state.A[iA].xint>=state.B[iB].xint? state.A[iA]: state.B[iB] //if equal, it's A
             iA += 1
@@ -205,14 +185,15 @@ function graph(state){
             } else{
                 console.log("something went wrong (graph initial step)")
             }
+            //This while loop is basically what's described in the paper--everything outside is for handling edge cases, or cases where multiple transitions are snuck in as one (handling breaks)
             var stop = 0 
             while(stop<1000){
                 var SiA_1 = alternatingSum(state.Ainput.slice(A0,iA+2)) //alternating sum up to iA + 1
                 var SiA = alternatingSum(state.Ainput.slice(A0,iA+1)) //alternating sum up to iA
                 var SiB_1 = alternatingSum(state.Binput.slice(B0,iB+2)) //alternating sum up to iB + 1
                 var SiB = alternatingSum(state.Binput.slice(B0,iB+1)) //alternating sum up to iB
-                var xiB = state.B[iB].xint
-                var xiA = state.A[iA].xint
+                // var xiB = state.B[iB].xint
+                // var xiA = state.A[iA].xint
                 //finished, return
                 if(eq(SiA,SiB)){
                     return state
@@ -257,7 +238,7 @@ function graph(state){
                     stepB(state)
                 }
                 //edge case type 1
-                else if(!(iA>=state.A.length-1 || iB>=state.B.length-1) & eq(Math.abs(SiA-SiB), Math.min(state.A[iA+1].xint),state.B[iB+1].xint)){
+                else if(!(iA>=state.A.length-1 || iB>=state.B.length-1) & eq(Math.abs(SiA-SiB), Math.min(state.A[iA+1].xint,state.B[iB+1].xint))){
                     console.log("handling edge case type 1, skipping A:")
                     stepB(state)
                     iA += 1
@@ -324,7 +305,7 @@ function placeVertices(state){
     state.leftEndpoint.L = 0
     state.rightEndpoint.L = 0
 
-    //uncomment this section to place all of them at L = 1, for debugging graph connections
+    // uncomment this section to place all of them at L = 1, for debugging graph connections
     // for(const C of state.A){
     //     C.L = 1
     //     C.P.x = C.xint - 1
@@ -388,7 +369,7 @@ function placeVertices(state){
             return initialize(state)
         }
         //first placement will use beta_0
-        if(state.A[iA].xint<=state.B[iB].xint){
+        if(state.A[iA].xint<state.B[iB].xint){
             console.log("initial step A",iA,iB)
             state.A[iA].L = 0
             state.B[iB].L = Math.sin(state.theta + state.beta_0)/Math.sin(state.beta_0) * (state.B[iB].xint-state.A[iA].xint)
